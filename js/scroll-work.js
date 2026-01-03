@@ -2,11 +2,11 @@ let target = 0;
 let current = 0;
 let velocity = 0;
 
-/* elements */
-const hero = document.querySelector('canvas');
-const work = document.getElementById('work');
-const title = document.querySelector('.work-title');
-const lines = document.querySelectorAll('.work-list li');
+/* elements — MATCH CURRENT HTML */
+const hero  = document.querySelector('canvas');
+const work  = document.getElementById('work');
+const title = document.querySelector('.work-heading');
+const lines = document.querySelectorAll('.work-nav li');
 
 /* ================= INPUT ================= */
 
@@ -28,7 +28,7 @@ window.addEventListener('touchmove', e => {
   const delta = lastY - y;
   lastY = y;
 
-  velocity += delta * 0.0025;   // tuned for mobile
+  velocity += delta * 0.0025;
 }, { passive: true });
 
 window.addEventListener('touchend', () => {
@@ -50,17 +50,23 @@ function loop() {
   current += (target - current) * 0.08;
 
   /* hero */
-  hero.style.transform = `translateY(${-current * 22}vh)`;
-  hero.style.opacity = 1 - current * 1.1;
+  if (hero) {
+    hero.style.transform = `translateY(${-current * 22}vh)`;
+    hero.style.opacity = 1 - current * 1.1;
+  }
 
   /* work */
-  work.style.transform = `translateY(${(1 - current) * 100}%)`;
-  work.style.opacity = Math.min(1, current * 1.2);
+  if (work) {
+    work.style.transform = `translateY(${(1 - current) * 100}%)`;
+    work.style.opacity = Math.min(1, current * 1.2);
+  }
 
   /* title */
-  title.style.opacity = Math.min(1, (current - 0.15) * 6);
-  title.style.transform =
-    `translateY(${(1 - Math.min(1, (current - 0.15) * 6)) * 12}px)`;
+  if (title) {
+    const p = Math.min(1, (current - 0.15) * 6);
+    title.style.opacity = p;
+    title.style.transform = `translateY(${(1 - p) * 12}px)`;
+  }
 
   /* list */
   lines.forEach((li, i) => {

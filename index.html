@@ -48,35 +48,200 @@ canvas {
 .work-screen {
   position: fixed;
   inset: 0;
-  background: #fff;
+  background: #ffffff;
   z-index: 20;
+
+  /* IMPORTANT: start offscreen for scroll animation */
+  transform: translateY(100%);
+
+  padding: 96px 8vw;
+}
+
+/* layout */
+.work-wrapper {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  height: 100%;
+  align-items: start;
+  gap: 6vw;
+}
+
+/* LEFT COLUMN */
+.work-left {
+  position: sticky;
+  top: 96px;
+}
+
+/* heading */
+.work-heading {
+  font-size: clamp(26px, 2.8vw, 34px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: 48px;
+}
+
+/* project list */
+.work-nav {
+  list-style: none;
+}
+
+.work-nav li {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+
+  font-size: clamp(22px, 2.6vw, 30px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+
+  margin-bottom: 32px;
+  cursor: pointer;
+
+  opacity: 0.42;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.work-nav li {
+  display: inline-flex;           /* 🔑 SHRINK TO CONTENT */
+  align-items: baseline;
+  gap: 14px;
+
+  cursor: pointer;
+  position: relative;
+
+  opacity: 0.42;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+
+/* hover / active */
+.work-nav li:hover,
+.work-nav li.active {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+/* title + year */
+.work-nav .title {
+  white-space: nowrap;
+}
+
+.work-nav .year {
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0.55;
+}
+
+/* RIGHT PREVIEW (floating layer) */
+.work-right {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* preview card */
+.preview {
+  position: absolute;
+  opacity: 0;
+  transform: translateY(-50%) scale(0.94);
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+
+.preview.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* preview placeholder */
+.preview-box {
+  width: min(1080px, 48vw);
+  height: min(720px, 52vh);
+
+  border-radius: 22px;
+  background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
+
   display: flex;
   align-items: center;
   justify-content: center;
+
+  font-size: 17px;
+  color: #555;
 }
 
-.work-content { text-align: center; }
-
-.work-title {
-  font-size: clamp(30px, 5vw, 46px);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-  margin-bottom: 28px;
-  opacity: 0;
-  transform: translateY(12px);
+.preview-box {
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.12),
+    0 8px 24px rgba(0,0,0,0.08);
 }
 
-.work-list { list-style: none; }
-
-.work-list li {
-  font-size: clamp(22px, 4.2vw, 36px);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.05;
-  margin-bottom: 22px;
-  opacity: 0;
-  transform: translateY(14px);
+/* ===== MOBILE POPUP ===== */
+@media (max-width: 767px) {
+  .work-right {
+    display: none;
+  }
 }
+
+.work-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.work-modal {
+  position: relative;
+  width: 100%;
+  max-width: min(1080px, 94vw);
+  max-height: 94vh;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.25);
+  overflow: hidden;
+}
+
+.work-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(0,0,0,0.06);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.work-modal-content {
+  padding: 24px;
+}
+
+.work-modal .preview-box {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+}
+/* floating preview layer (detached from scroll) */
+.preview-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
+
+
 </style>
 </head>
 
@@ -84,13 +249,45 @@ canvas {
 
 <!-- ===== WORK SECTION ===== -->
 <section class="work-screen" id="work">
-  <div class="work-content">
-    <div class="work-title">Work</div>
-    <ul class="work-list">
-      <li>Health checkup camp 2025</li>
-      <li>Diabetes day camp</li>
-      <li>Sanvextra website</li>
-    </ul>
+  <div class="work-wrapper">
+
+    <!-- LEFT LIST -->
+    <div class="work-left">
+      <h2 class="work-heading">Work</h2>
+
+      <ul class="work-nav">
+        <li data-preview="preview-health">
+          <span class="title">Health checkup camp</span>
+          <span class="year">2025</span>
+        </li>
+
+        <li data-preview="preview-diabetes">
+          <span class="title">Diabetes day camp</span>
+          <span class="year">2025</span>
+        </li>
+
+        <li data-preview="preview-sanvextra">
+          <span class="title">Sanvextra website</span>
+          <span class="year">2025</span>
+        </li>
+      </ul>
+    </div>
+
+    <!-- RIGHT PREVIEW -->
+    <div class="work-right">
+      <div class="preview" id="preview-health">
+        <div class="preview-box">Health Checkup Camp Preview</div>
+      </div>
+
+      <div class="preview" id="preview-diabetes">
+        <div class="preview-box">Diabetes Day Camp Preview</div>
+      </div>
+
+      <div class="preview" id="preview-sanvextra">
+        <div class="preview-box">Sanvextra Website Preview</div>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -100,6 +297,7 @@ canvas {
 <!-- ===== APP SCRIPTS ===== -->
 <script src="js/hero-text.js"></script>
 <script src="js/scroll-work.js"></script>
+<script src="js/work-preview.js"></script>
 
 </body>
 </html>
