@@ -3,91 +3,119 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Gaurav Gaikwad — Grain Reveal</title>
+<title>Gaurav Gaikwad</title>
 
 <style>
-  * { margin:0; padding:0; box-sizing:border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 
-  html, body {
-    height:100%;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont,
-                 "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    overflow:hidden;
-  }
+html, body {
+  height:100%;
+  overflow:hidden;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont,
+               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: hsla(200, 20%, 96%, 1);
+}
 
-  body {
-    background-color: hsla(200, 20%, 96%, 1);
-    background-image:
-      radial-gradient(at 82% 68%, hsla(190, 85%, 92%, 1) 0px, transparent 50%),
-      radial-gradient(at 20% 75%, hsla(135, 70%, 92%, 1) 0px, transparent 50%),
-      radial-gradient(at 95% 95%, hsla(48, 95%, 92%, 1) 0px, transparent 50%),
-      radial-gradient(at 8% 55%, hsla(28, 95%, 92%, 1) 0px, transparent 50%),
-      radial-gradient(at 55% 18%, hsla(350, 85%, 92%, 1) 0px, transparent 50%),
-      radial-gradient(at 48% 30%, hsla(275, 80%, 92%, 1) 0px, transparent 50%),
-      radial-gradient(at 72% 25%, hsla(215, 80%, 92%, 1) 0px, transparent 50%);
-    background-size: 500% 500%;
-    animation: gradientShift 9s ease infinite;
-  }
+/* ===== HERO BACKGROUND ===== */
+body {
+  background-image:
+    radial-gradient(at 82% 68%, hsla(190, 85%, 92%, 1) 0px, transparent 50%),
+    radial-gradient(at 20% 75%, hsla(135, 70%, 92%, 1) 0px, transparent 50%),
+    radial-gradient(at 95% 95%, hsla(48, 95%, 92%, 1) 0px, transparent 50%),
+    radial-gradient(at 8% 55%, hsla(28, 95%, 92%, 1) 0px, transparent 50%),
+    radial-gradient(at 55% 18%, hsla(350, 85%, 92%, 1) 0px, transparent 50%),
+    radial-gradient(at 48% 30%, hsla(275, 80%, 92%, 1) 0px, transparent 50%),
+    radial-gradient(at 72% 25%, hsla(215, 80%, 92%, 1) 0px, transparent 50%);
+  background-size: 500% 500%;
+  animation: gradientShift 9s ease infinite;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-  @keyframes gradientShift {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
+/* ===== THREE HERO ===== */
+canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  will-change: transform, opacity;
+}
 
-  canvas {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-  }
+/* ===== WORK FULLSCREEN ===== */
+.work-screen {
+  position: fixed;
+  inset: 0;
+  background: #fff;
+  z-index: 20;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  will-change: transform, opacity;
+}
+
+.work-content { text-align: center; }
+
+.work-title {
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  margin-bottom: 28px;
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.work-list { list-style: none; }
+
+.work-list li {
+  font-size: clamp(22px, 4.2vw, 36px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+  margin-bottom: 22px;
+  opacity: 0;
+  transform: translateY(14px);
+}
+.work-list li:last-child { margin-bottom:0; }
 </style>
 </head>
 
 <body>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
+
 <script>
 /* ================= CONFIG ================= */
 const TEXT = 'Gaurav Gaikwad';
-const DURATION = 6.0;
+const DURATION = 4.0;
 const NOISE_SCALE = 900.0;
 
-/* ================= THREE ================= */
+/* ================= THREE HERO ================= */
 const scene = new THREE.Scene();
 const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
-
 const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
 document.body.appendChild(renderer.domElement);
 
-/* ================= TEXT CANVAS ================= */
 const textCanvas = document.createElement('canvas');
 const ctx = textCanvas.getContext('2d');
-
 let textTexture;
-let lastDPR = window.devicePixelRatio || 1;
 
-/* ================= DRAW TEXT ================= */
 function drawText() {
-  const dpr = window.devicePixelRatio || 1;
-  const w = window.innerWidth;
-  const h = window.innerHeight;
+  const dpr = devicePixelRatio || 1;
+  textCanvas.width = innerWidth * dpr;
+  textCanvas.height = innerHeight * dpr;
 
-  textCanvas.width  = Math.max(1, Math.floor(w * dpr));
-  textCanvas.height = Math.max(1, Math.floor(h * dpr));
-
-  ctx.setTransform(1,0,0,1,0,0);
   ctx.clearRect(0,0,textCanvas.width,textCanvas.height);
-
   ctx.fillStyle = '#000';
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.imageSmoothingEnabled = true;
 
-  const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
-  const fontSize = Math.min(Math.max(w * 0.07, 3 * root), 5 * root);
-
-  ctx.font = `600 ${fontSize * dpr}px system-ui, -apple-system, BlinkMacSystemFont,
-              "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+  const fontSize = Math.min(Math.max(innerWidth * 0.07, 48), 96);
+  ctx.font = `600 ${fontSize * dpr}px system-ui`;
 
   const spacing = -0.05 * fontSize * dpr;
   const chars = [...TEXT];
@@ -97,36 +125,25 @@ function drawText() {
   let x = (textCanvas.width - total) / 2;
   const y = textCanvas.height / 2;
 
-  for (let i=0;i<chars.length;i++){
-    ctx.fillText(chars[i], x, y);
+  chars.forEach((c,i)=>{
+    ctx.fillText(c,x,y);
     x += widths[i] + spacing;
-  }
+  });
+
+  textTexture = new THREE.CanvasTexture(textCanvas);
+  material.uniforms.u_texture.value = textTexture;
 }
 
-/* ================= TEXTURE ================= */
-function ensureTexture(recreate=false) {
-  if (!textTexture || recreate) {
-    if (textTexture) textTexture.dispose();
-    textTexture = new THREE.CanvasTexture(textCanvas);
-    textTexture.generateMipmaps = false;
-    textTexture.minFilter = THREE.LinearFilter;
-    textTexture.magFilter = THREE.LinearFilter;
-    material.uniforms.u_texture.value = textTexture;
-  } else {
-    textTexture.needsUpdate = true;
-  }
-}
-
-/* ================= SHADER ================= */
 const material = new THREE.ShaderMaterial({
   transparent: true,
   uniforms: {
     u_texture: { value: null },
-    u_progress: { value: 0 }
+    u_progress: { value: 0 },
+    u_noiseScale: { value: NOISE_SCALE }
   },
   vertexShader: `
     varying vec2 vUv;
-    void main() {
+    void main(){
       vUv = uv;
       gl_Position = vec4(position,1.0);
     }
@@ -134,21 +151,31 @@ const material = new THREE.ShaderMaterial({
   fragmentShader: `
     precision highp float;
     varying vec2 vUv;
+
     uniform sampler2D u_texture;
     uniform float u_progress;
+    uniform float u_noiseScale;
 
     float noise(vec2 p){
-      return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);
+      return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453);
     }
 
     void main(){
       vec4 t = texture2D(u_texture, vUv);
-      if(t.a < 0.01) discard;
-      if(vUv.x > u_progress) discard;
+      if (t.a < 0.01) discard;
 
-      float n = noise(vUv * ${NOISE_SCALE.toFixed(1)});
-      float local = clamp((u_progress - vUv.x)/0.15,0.0,1.0);
-      if(n > local) discard;
+      if (u_progress >= 0.999) {
+        gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+        return;
+      }
+
+      if (vUv.x > u_progress) discard;
+
+      /* animated grain drift */
+      float n = noise(vUv * u_noiseScale + u_progress * 0.05);
+
+      float local = clamp((u_progress - vUv.x) / 0.22, 0.0, 1.0);
+      if (n > local) discard;
 
       gl_FragColor = vec4(0.0,0.0,0.0,1.0);
     }
@@ -157,40 +184,87 @@ const material = new THREE.ShaderMaterial({
 
 scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), material));
 
-/* ================= RESPONSIVE SYNC ================= */
-function syncLayout() {
-  const dpr = window.devicePixelRatio || 1;
-  const dprChanged = dpr !== lastDPR;
-  lastDPR = dpr;
-
-  renderer.setPixelRatio(dpr);
-
-  // 🔑 THIS IS THE FIX (true keeps canvas centered)
-  renderer.setSize(window.innerWidth, window.innerHeight, true);
-
+function sync() {
+  renderer.setSize(innerWidth, innerHeight, true);
   drawText();
-  ensureTexture(dprChanged);
 }
+sync();
 
-const ro = new ResizeObserver(syncLayout);
-ro.observe(document.documentElement);
-window.addEventListener('resize', syncLayout);
-
-/* ================= ANIMATION ================= */
 let start = null;
-function easeOut(t){ return 1.0 - Math.pow(1.0 - t, 3.0); }
-
 function animate(ts){
   if(!start) start = ts;
-  const t = Math.min(1,(ts-start)/1000/DURATION);
-  material.uniforms.u_progress.value = easeOut(t);
+  material.uniforms.u_progress.value = Math.min(1,(ts-start)/1000/DURATION);
   renderer.render(scene,camera);
   requestAnimationFrame(animate);
 }
 requestAnimationFrame(animate);
+</script>
 
-/* ================= INIT ================= */
-syncLayout();
+<!-- ===== WORK SECTION ===== -->
+<section class="work-screen" id="work">
+  <div class="work-content">
+    <div class="work-title">Work</div>
+    <ul class="work-list">
+      <li>Health checkup camp 2025</li>
+      <li>Diabetes day camp</li>
+      <li>Sanvextra website</li>
+    </ul>
+  </div>
+</section>
+
+<script>
+/* ================= APPLE-STYLE SCROLL SYSTEM ================= */
+
+let target = 0;
+let current = 0;
+let velocity = 0;
+
+const hero = document.querySelector('canvas');
+const work = document.getElementById('work');
+const title = document.querySelector('.work-title');
+const lines = document.querySelectorAll('.work-list li');
+
+/* wheel input */
+window.addEventListener('wheel', e => {
+  velocity += e.deltaY * 0.0009;
+}, { passive:true });
+
+/* easing loop */
+function loop(){
+  target += velocity;
+  velocity *= 0.82;
+
+  /* soft snap */
+  if (Math.abs(velocity) < 0.001) {
+    if (target > 0.5) target += (1 - target) * 0.08;
+    else target += (0 - target) * 0.08;
+  }
+
+  target = Math.max(0, Math.min(1, target));
+  current += (target - current) * 0.08;
+
+  /* micro parallax */
+  hero.style.transform = `translateY(${-current * 22}vh)`;
+  work.style.transform = `translateY(${(1 - current) * 100}%)`;
+
+  /* opacity crossover */
+  hero.style.opacity = 1 - current * 1.1;
+  work.style.opacity = Math.min(1, current * 1.2);
+
+  /* staggered text */
+  title.style.opacity = Math.min(1, (current - 0.15) * 6);
+  title.style.transform = `translateY(${(1 - Math.min(1,(current-0.15)*6))*12}px)`;
+
+  lines.forEach((li,i)=>{
+    const delay = 0.22 + i * 0.06;
+    const p = Math.min(1, Math.max(0, (current - delay) * 6));
+    li.style.opacity = p;
+    li.style.transform = `translateY(${(1-p)*14}px)`;
+  });
+
+  requestAnimationFrame(loop);
+}
+loop();
 </script>
 
 </body>
