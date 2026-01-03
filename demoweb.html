@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Gaurav Gaikwad — Grain Reveal</title>
+
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  html, body {
+    height:100%;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                 "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow:hidden;
+  }
+
+  body {
+    background-color: hsla(200, 20%, 96%, 1);
+    background-image:
+      radial-gradient(at 82% 68%, hsla(190, 85%, 92%, 1) 0px, transparent 50%),
+      radial-gradient(at 20% 75%, hsla(135, 70%, 92%, 1) 0px, transparent 50%),
+      radial-gradient(at 95% 95%, hsla(48, 95%, 92%, 1) 0px, transparent 50%),
+      radial-gradient(at 8% 55%, hsla(28, 95%, 92%, 1) 0px, transparent 50%),
+      radial-gradient(at 55% 18%, hsla(350, 85%, 92%, 1) 0px, transparent 50%),
+      radial-gradient(at 48% 30%, hsla(275, 80%, 92%, 1) 0px, transparent 50%),
+      radial-gradient(at 72% 25%, hsla(215, 80%, 92%, 1) 0px, transparent 50%);
+    background-size: 500% 500%;
+    animation: gradientShift 9s ease infinite;
+  }
+
+  @keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  canvas {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+  }
+</style>
+</head>
+
+<body>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
+<script>
+/* ================= CONFIG ================= */
+const TEXT = 'Gaurav Gaikwad';
+const DURATION = 6.0;
+const NOISE_SCALE = 900.0;
+
+/* ================= THREE ================= */
+const scene = new THREE.Scene();
+const camera = new THREE.OrthographicCamera(-1,1,1,-1,0,1);
+
+const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+document.body.appendChild(renderer.domElement);
+
+/* ================= TEXT CANVAS ================= */
+const textCanvas = document.createElement('canvas');
+const ctx = textCanvas.getContext('2d');
+
+let textTexture;
+let lastDPR = window.devicePixelRatio || 1;
+
+/* ================= DRAW TEXT ================= */
+function drawText() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+
+  textCanvas.width  = Math.max(1, Math.floor(w * dpr));
+  textCanvas.height = Math.max(1, Math.floor(h * dpr));
+
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,textCanvas.width,textCanvas.height);
+
+  ctx.fillStyle = '#000';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.imageSmoothingEnabled = true;
+
+  const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
+  const fontSize = Math.min(Math.max(w * 0.07, 3 * root), 5 * root);
+
+  ctx.font = `600 ${fontSize * dpr}px system-ui, -apple-system, BlinkMacSystemFont,
+              "Segoe UI", Roboto, Helvetica, Arial, sans-serif`;
+
+  const spacing = -0.05 * fontSize * dpr;
+  const chars = [...TEXT];
+  const widths = chars.map(c => ctx.measureText(c).width);
+  const total = widths.reduce((a,b)=>a+b,0) + spacing*(chars.length-1);
+
+  let x = (textCanvas.width - total) / 2;
+  const y = textCanvas.height / 2;
+
+  for (let i=0;i<chars.length;i++){
+    ctx.fillText(chars[i], x, y);
+    x += widths[i] + spacing;
+  }
+}
+
+/* ================= TEXTURE ================= */
+function ensureTexture(recreate=false) {
+  if (!textTexture || recreate) {
+    if (textTexture) textTexture.dispose();
+    textTexture = new THREE.CanvasTexture(textCanvas);
+    textTexture.generateMipmaps = false;
+    textTexture.minFilter = THREE.LinearFilter;
+    textTexture.magFilter = THREE.LinearFilter;
+    material.uniforms.u_texture.value = textTexture;
+  } else {
+    textTexture.needsUpdate = true;
+  }
+}
+
+/* ================= SHADER ================= */
+const material = new THREE.ShaderMaterial({
+  transparent: true,
+  uniforms: {
+    u_texture: { value: null },
+    u_progress: { value: 0 }
+  },
+  vertexShader: `
+    varying vec2 vUv;
+    void main() {
+      vUv = uv;
+      gl_Position = vec4(position,1.0);
+    }
+  `,
+  fragmentShader: `
+    precision highp float;
+    varying vec2 vUv;
+    uniform sampler2D u_texture;
+    uniform float u_progress;
+
+    float noise(vec2 p){
+      return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);
+    }
+
+    void main(){
+      vec4 t = texture2D(u_texture, vUv);
+      if(t.a < 0.01) discard;
+      if(vUv.x > u_progress) discard;
+
+      float n = noise(vUv * ${NOISE_SCALE.toFixed(1)});
+      float local = clamp((u_progress - vUv.x)/0.15,0.0,1.0);
+      if(n > local) discard;
+
+      gl_FragColor = vec4(0.0,0.0,0.0,1.0);
+    }
+  `
+});
+
+scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2), material));
+
+/* ================= RESPONSIVE SYNC ================= */
+function syncLayout() {
+  const dpr = window.devicePixelRatio || 1;
+  const dprChanged = dpr !== lastDPR;
+  lastDPR = dpr;
+
+  renderer.setPixelRatio(dpr);
+
+  // 🔑 THIS IS THE FIX (true keeps canvas centered)
+  renderer.setSize(window.innerWidth, window.innerHeight, true);
+
+  drawText();
+  ensureTexture(dprChanged);
+}
+
+const ro = new ResizeObserver(syncLayout);
+ro.observe(document.documentElement);
+window.addEventListener('resize', syncLayout);
+
+/* ================= ANIMATION ================= */
+let start = null;
+function easeOut(t){ return 1.0 - Math.pow(1.0 - t, 3.0); }
+
+function animate(ts){
+  if(!start) start = ts;
+  const t = Math.min(1,(ts-start)/1000/DURATION);
+  material.uniforms.u_progress.value = easeOut(t);
+  renderer.render(scene,camera);
+  requestAnimationFrame(animate);
+}
+requestAnimationFrame(animate);
+
+/* ================= INIT ================= */
+syncLayout();
+</script>
+
+</body>
+</html>

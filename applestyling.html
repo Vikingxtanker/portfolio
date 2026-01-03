@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Gaurav Gaikwad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* ---------- Reset ---------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      scroll-behavior: smooth;
+    }
+
+    /* ---------- Apple-style Multicolor Background ---------- */
+    body {
+      background-color: hsla(200, 20%, 96%, 1);
+      background-image:
+        /* Teal / Ocean */
+        radial-gradient(at 82% 68%, hsla(190, 85%, 92%, 1) 0px, transparent 50%),
+
+        /* Light Green */
+        radial-gradient(at 20% 75%, hsla(135, 70%, 92%, 1) 0px, transparent 50%),
+
+        /* Yellow */
+        radial-gradient(at 95% 95%, hsla(48, 95%, 92%, 1) 0px, transparent 50%),
+
+        /* Orange */
+        radial-gradient(at 8% 55%, hsla(28, 95%, 92%, 1) 0px, transparent 50%),
+
+        /* Red / Pink */
+        radial-gradient(at 55% 18%, hsla(350, 85%, 92%, 1) 0px, transparent 50%),
+
+        /* Purple */
+        radial-gradient(at 48% 30%, hsla(275, 80%, 92%, 1) 0px, transparent 50%),
+
+        /* Deep Blue Accent */
+        radial-gradient(at 72% 25%, hsla(215, 80%, 92%, 1) 0px, transparent 50%);
+
+      background-size: 500% 500%;
+      animation: gradientShift 9s ease infinite;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    @keyframes gradientShift {
+      0%   { background-position:   0% 50%; }
+      50%  { background-position: 100% 50%; }
+      100% { background-position:   0% 50%; }
+    }
+
+    /* Accessibility */
+    @media (prefers-reduced-motion: reduce) {
+      body { animation: none; }
+    }
+
+    /* ---------- Hero ---------- */
+    .hero {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hero h1 {
+      font-size: clamp(3rem, 7vw, 5rem);
+      font-weight: 600;
+      letter-spacing: -0.05em;
+      color: #111;
+      user-select: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1>Gaurav Gaikwad</h1>
+  </section>
+
+</body>
+</html>
