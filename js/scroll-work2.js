@@ -1,17 +1,20 @@
 /* ==========================================================
-   scroll-work2.js
-   Android-only rubber band
-   + HERO rebound even when refresh is disabled
+   scroll-work.js
+   FINAL STABLE VERSION
+   - No faded ghost state
+   - Immediate commit on release
+   - Android rubber + hero rebound
+   - Desktop rigid
    ========================================================== */
 
-let pos = 0;
-let current = 0;
+let pos = 0;        // physics position (can overshoot)
+let current = 0;    // smoothed position
 let vel = 0;
 
 let lastTouchY = null;
-let isTouching = false;
-let lastInputAt = performance.now();
 let lastDelta = 0;
+let isTouching = false;
+let commitTarget = null; // 0 = hero, 1 = work
 
 /* ===================== DEVICE ===================== */
 
@@ -26,26 +29,24 @@ const TOUCH_SENS_MOBILE  = 0.0022;
 const MAX_VEL = 1.8;
 
 /* damping */
-const GLOBAL_DAMP_DESKTOP = 0.92;
-const GLOBAL_DAMP_MOBILE  = 0.88;
+const DAMP_DESKTOP = 0.92;
+const DAMP_MOBILE  = 0.88;
 
-/* rubber (ANDROID ONLY) */
+/* Android rubber */
 const RUBBER_STIFF = 0.18;
-const RUBBER_DAMP  = 0.78;
 
 /* hero rebound */
-const HERO_REBOUND_ZONE  = 0.06;   // how close to top
-const HERO_REBOUND_FORCE = 0.58;   // bounce strength
+const HERO_REBOUND_ZONE  = 0.08;
+const HERO_REBOUND_FORCE = 0.38;
 
 /* snap */
-const SNAP_IDLE_MS = 100;
-const SNAP_FORCE   = 0.14;
+const SNAP_FORCE = 0.12;
 
 /* smoothing */
 const SMOOTH = 0.06;
 
-/* overscroll limits */
-const OVER_SCROLL_LIMIT = 0.85;
+/* overscroll visibility */
+const OVER_SCROLL_LIMIT = 0.55;
 
 /* ===================== ELEMENTS ===================== */
 
@@ -61,21 +62,19 @@ const resistance = o => 1 / (1 + Math.abs(o) * 6);
 
 /* ===================== INPUT ===================== */
 
-/* DESKTOP */
+/* DESKTOP WHEEL */
 window.addEventListener('wheel', e => {
   vel += e.deltaY * WHEEL_SENS_DESKTOP;
   vel = clamp(vel, -MAX_VEL, MAX_VEL);
-  lastInputAt = performance.now();
 }, { passive: true });
 
 /* TOUCH START */
 window.addEventListener('touchstart', e => {
   if (!e.touches.length) return;
   lastTouchY = e.touches[0].clientY;
+  lastDelta = 0;
   isTouching = true;
   vel *= 0.35;
-  lastDelta = 0;
-  lastInputAt = performance.now();
 }, { passive: true });
 
 /* TOUCH MOVE */
@@ -99,56 +98,65 @@ window.addEventListener('touchmove', e => {
 
   vel += deltaPos;
   vel = clamp(vel, -MAX_VEL, MAX_VEL);
-  lastInputAt = performance.now();
 }, { passive: true });
 
-/* TOUCH END */
+/* TOUCH END — DECIDE IMMEDIATELY */
 window.addEventListener('touchend', () => {
   isTouching = false;
   lastTouchY = null;
 
-  /* 🔑 HERO REBOUND IMPULSE */
+  const render = clamp(current, 0, 1);
+
+  /* velocity override for flicks */
+  if (Math.abs(lastDelta) > 10) {
+    commitTarget = lastDelta > 0 ? 1 : 0;
+  } else {
+    commitTarget = render >= 0.5 ? 1 : 0;
+  }
+
+  /* hero rebound impulse */
   if (
     isAndroid &&
-    pos < HERO_REBOUND_ZONE &&
-    lastDelta < 0
+    commitTarget === 1 &&
+    pos < HERO_REBOUND_ZONE
   ) {
     vel -= HERO_REBOUND_FORCE;
   }
-
-  lastInputAt = performance.now();
 });
 
 /* ===================== LOOP ===================== */
 
 function loop() {
 
-  /* ---- ANDROID RUBBER FORCE ---- */
+  /* ANDROID RUBBER FORCE */
   if (isAndroid && isTouch) {
     if (pos < 0) vel += -pos * RUBBER_STIFF;
     else if (pos > 1) vel += -(pos - 1) * RUBBER_STIFF;
   }
 
-  /* ---- STRICT SNAP ---- */
-  const idle = performance.now() - lastInputAt;
-  if (!isTouching && idle > SNAP_IDLE_MS && Math.abs(vel) < 0.06) {
-    const render = clamp(current, 0, 1);
-    const target = render < 0.5 ? 0 : 1;
-    vel += (target - pos) * SNAP_FORCE;
+  /* COMMITTED SNAP — NO AMBIGUITY */
+  if (!isTouching && commitTarget !== null) {
+    vel += (commitTarget - pos) * SNAP_FORCE;
+
+    if (Math.abs(commitTarget - pos) < 0.002) {
+      pos = commitTarget;
+      vel = 0;
+      commitTarget = null;
+    }
   }
 
-  /* ---- INTEGRATE ---- */
-  vel *= isTouch ? GLOBAL_DAMP_MOBILE : GLOBAL_DAMP_DESKTOP;
+  /* INTEGRATE */
+  vel *= isTouch ? DAMP_MOBILE : DAMP_DESKTOP;
   pos += vel;
 
+  /* allow visible overscroll only on Android */
   pos = (isAndroid && isTouch)
     ? clamp(pos, -OVER_SCROLL_LIMIT, 1 + OVER_SCROLL_LIMIT)
     : clamp(pos, 0, 1);
 
-  /* ---- SMOOTH ---- */
+  /* SMOOTH */
   current += (pos - current) * SMOOTH;
 
-  /* ---- CLEAN RENDER ---- */
   const render = clamp(current, 0, 1);
 
   /* ===================== RENDER ===================== */
@@ -184,6 +192,7 @@ loop();
 /* ================= DISABLE MOBILE PULL TO REFRESH ================= */
 
 let startY = 0;
+
 window.addEventListener('touchstart', e => {
   if (e.touches.length === 1) startY = e.touches[0].clientY;
 }, { passive: true });
