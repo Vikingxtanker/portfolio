@@ -21,7 +21,7 @@ const isMobile = window.matchMedia('(max-width: 767px)').matches;
 
 /* velocities */
 const WHEEL_SENS_DESKTOP = 0.0009; // desktop
-const TOUCH_SENS_MOBILE  = 0.0011; // mobile
+const TOUCH_SENS_MOBILE  = 0.0004; // mobile
 
 /* physics */
 const MAX_VEL     = 1.2;
