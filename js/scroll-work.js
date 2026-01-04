@@ -12,6 +12,7 @@ const lines = document.querySelectorAll('.work-nav li');
 
 /* desktop wheel */
 window.addEventListener('wheel', e => {
+  /* DESKTOP SCROLL */
   velocity += e.deltaY * 0.0009;
 }, { passive: true });
 
@@ -27,8 +28,13 @@ window.addEventListener('touchmove', e => {
   const y = e.touches[0].clientY;
   const delta = lastY - y;
   lastY = y;
+  
+  /* MOBILE SCROLL */
+  velocity += delta * 0.00011;
+  
+    /* 🔒 clamp to avoid jump */
+  velocity = Math.max(-0.08, Math.min(0.08, velocity));
 
-  velocity += delta * 0.0025;
 }, { passive: true });
 
 window.addEventListener('touchend', () => {

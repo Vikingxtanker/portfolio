@@ -81,73 +81,36 @@ canvas {
   z-index: 1;
 }
 
-/* ===== WORK SECTION ===== */
+/* ---------- Static work-screen gradient (replace animated version) ---------- */
 .work-screen {
   position: fixed;
   inset: 0;
   z-index: 20;
+  padding: 96px 8vw;
+  color: #fff;
 
-  /* 🍎 Apple-style warm gradient */
+  /* static combo of the same warm colours you used, positioned so colors are visible */
   background:
     radial-gradient(
       at 20% 25%,
-      rgba(242, 137, 137, 0.45),
-      transparent 15%
+      rgba(242, 137, 137, 0.45) 0%,
+      rgba(242, 137, 137, 0.00) 35%
     ),
     radial-gradient(
       at 80% 70%,
-      rgba(238, 96, 96, 0.55),
-      transparent 25%
+      rgba(238, 96, 96, 0.55) 0%,
+      rgba(238, 96, 96, 0.00) 40%
     ),
-    linear-gradient(
-      135deg,
-      rgba(238, 96, 96, 1),
-      rgba(242, 137, 137, 1)
-    );
+    linear-gradient(135deg, rgba(238, 96, 96, 1) 0%, rgba(242, 137, 137, 1) 100%);
 
-  background-size: 200% 200%;
-  animation: workGradientShift 6s ease-in-out infinite;
+  /* static placement — tuned so the two radials sit over the linear base */
+  background-position: 20% 25%, 80% 70%, 0% 0%;
+  background-size: cover;
+  background-repeat: no-repeat;
 
-  /* IMPORTANT: start offscreen for scroll animation */
-  transform: translateY(100%);
-
-  padding: 96px 8vw;
+  /* keep existing transform/entry behaviour if you rely on it */
+  transform: translateY(100%); /* keep this if scroll animation depends on it */
 }
-@keyframes workGradientShift {
-  0% {
-    background-position:
-      0% 0%,
-      100% 20%,
-      20% 100%,
-      80% 80%,
-      40% 10%,
-      60% 40%,
-      30% 70%;
-  }
-
-  50% {
-    background-position:
-      60% 40%,
-      20% 80%,
-      80% 20%,
-      30% 60%,
-      70% 90%,
-      10% 30%,
-      90% 50%;
-  }
-
-  100% {
-    background-position:
-      0% 0%,
-      100% 20%,
-      20% 100%,
-      80% 80%,
-      40% 10%,
-      60% 40%,
-      30% 70%;
-  }
-}
-
 
 /* layout */
 .work-wrapper {
@@ -159,10 +122,62 @@ canvas {
 }
 
 /* LEFT COLUMN */
+/* ---------- Darker glass panel for work-left ---------- */
 .work-left {
   position: sticky;
   top: 96px;
+
+  padding: 48px 42px;
+  border-radius: 32px;
+
+  /* darker red glass than the work background */
+  background:
+    linear-gradient(
+      180deg,
+      rgba(160, 35, 35, 0.55),
+      rgba(110, 20, 20, 0.55)
+    );
+
+  /* frosted glass effect */
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+
+  border: 1px solid rgba(255, 255, 255, 0.12);
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+
+  /* subtle separation from right preview */
+  max-width: 520px;
 }
+
+.work-left::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+
+  background: radial-gradient(
+    120% 80% at 30% 20%,
+    rgba(255, 120, 120, 0.18),
+    transparent 60%
+  );
+
+  opacity: 0.6;
+}
+
+.work-nav li {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255,255,255,0.18);
+}
+
+.work-nav li:hover,
+.work-nav li.active {
+  background: rgba(255, 255, 255, 0.18);
+}
+
 
 /* heading */
 .work-heading {
@@ -177,85 +192,131 @@ canvas {
   list-style: none;
 }
 
-.work-nav li {
-  display: flex;                 /* keeps vertical stacking */
-  align-items: baseline;
-  gap: 14px;
-
-  width: fit-content;            /* 🔑 shrink to text width */
-  max-width: 100%;               /* safety */
-  white-space: nowrap;           /* prevent wrapping */
-
-  font-size: clamp(22px, 2.6vw, 30px);
-  font-weight: 500;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
-
-  margin-bottom: 32px;
-  cursor: pointer;
-
-  opacity: 0.42;
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
-}
-
-
-/* hover / active */
-.work-nav li:hover,
-.work-nav li.active {
-  opacity: 1;
-  transform: translateX(2px);
-}
-
-/* title + year */
-.work-nav .title {
-  white-space: nowrap;
-}
-
-.work-nav .year {
-  font-size: 13px;
-  font-weight: 500;
-  opacity: 0.55;
-}
-
-/* === Apple-style hover popup for work items === */
-.work-nav li {
-  position: relative;
-  padding: 8px 14px;
-  border-radius: 18px;
-
-  background: transparent;
-
-  transition:
-    background-color 0.25s cubic-bezier(.22,1,.36,1),
-    box-shadow 0.25s cubic-bezier(.22,1,.36,1),
-    transform 0.25s cubic-bezier(.22,1,.36,1),
-    opacity 0.25s ease;
-}
-
-/* subtle dark gray pill on hover */
-.work-nav li:hover {
-  background: rgba(128, 128, 128, 0.12); /* 👈 correct */
-  
-  box-shadow:
-    0 10px 30px rgba(0, 0, 0, 0.12),
-    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
-
-  transform: translateX(2px) scale(1.02);
-  opacity: 1;
-}
-
-/* keep text crisp */
-.work-nav li span {
-  position: relative;
-  z-index: 1;
-}
-
+/* ---------- Liquid-glass buttons for work-nav items ---------- */
 .work-nav {
   display: flex;
   flex-direction: column;
   gap: 6px;
+}
+
+/* base pill style (glass) */
+.work-nav li {
+  position: relative;          /* for pseudo elements */
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+
+  padding: 12px 18px;
+  border-radius: 30px;
+
+  /* glassy translucent fill — tuned for your warm background */
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  -webkit-backdrop-filter: blur(8px) saturate(140%);
+  backdrop-filter: blur(8px) saturate(140%);
+
+  box-shadow:
+    0 8px 20px rgba(0,0,0,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.03);
+
+  overflow: hidden;            /* contain sheen/glow */
+  transition:
+    background-color 260ms cubic-bezier(.22,1,.36,1),
+    box-shadow 260ms cubic-bezier(.22,1,.36,1),
+    transform 260ms cubic-bezier(.22,1,.36,1),
+    opacity 200ms ease,
+    border-color 260ms ease;
+  cursor: pointer;
+
+  /* slightly reduced default opacity so hover pops more */
+  opacity: 0.65;
+}
+
+/* glossy highlight (sheen) */
+.work-nav li::before {
+  content: "";
+  position: absolute;
+  top: -60%;
+  left: -30%;
+  width: 160%;
+  height: 80%;
+  transform: rotate(-18deg);
+  pointer-events: none;
+
+  /* subtle angled glossy streak */
+  background: linear-gradient(180deg,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.06) 20%,
+    rgba(255,255,255,0.0) 60%);
+  filter: blur(2px);
+  opacity: 0;                  /* reveal on hover */
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+/* soft blurred halo/glow under the pill on hover */
+.work-nav li::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 110%;
+  height: 110%;
+  transform: translateY(6px) scale(0.98);
+  z-index: 0;
+  pointer-events: none;
+
+  /* low-contrast glow tuned to background — helps the pill "float" */
+  background: radial-gradient(60% 40% at 50% 60%,
+    rgba(255, 120, 120, 0.08),
+    rgba(255, 80, 80, 0.04) 40%,
+    rgba(0,0,0,0) 60%);
+  filter: blur(12px) saturate(120%);
+  opacity: 0;                  /* reveal on hover */
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+/* hover / active state — frosted + glossy */
+.work-nav li:hover,
+.work-nav li.active {
+  opacity: 1;
+  transform: translateX(2px) scale(1.02);
+
+  /* brighten the glass and strengthen the outline */
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255,255,255,0.20);
+  box-shadow:
+    0 14px 38px rgba(0,0,0,0.28),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+/* reveal sheen & glow on hover */
+.work-nav li:hover::before,
+.work-nav li.active::before {
+  opacity: 1;
+  transform: rotate(-16deg) translateY(-6%);
+}
+
+.work-nav li:hover::after,
+.work-nav li.active::after {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* keep text above pseudo elements */
+.work-nav li span { position: relative; z-index: 1; }
+
+/* reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  .work-nav li,
+  .work-nav li::before,
+  .work-nav li::after {
+    transition: none !important;
+  }
+  .work-nav li { transform: none !important; }
 }
 
 /* RIGHT PREVIEW (floating layer) */
