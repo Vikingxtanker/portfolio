@@ -385,6 +385,18 @@ canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
   }
 }
 
+/* ================= DISABLE PULL TO REFRESH ================= */
+
+/* Modern browsers (Chrome, Edge, Firefox Android) */
+html, body {
+  overscroll-behavior-y: none;
+}
+
+/* Prevent scroll chaining */
+body {
+  overscroll-behavior: none;
+}
+
 
 </style>
 </head>
@@ -477,7 +489,7 @@ canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
 <!-- ===== APP SCRIPTS (keep your existing app scripts) ===== -->
 <script src="js/hero-text.js"></script>
-<script src="js/scroll-work.js"></script>
+<script src="js/scroll-work2.js"></script>
 <script src="js/work-preview.js"></script>
 <script src="js/hero-bg-control.js"></script>
 

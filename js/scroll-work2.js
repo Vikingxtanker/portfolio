@@ -174,3 +174,31 @@ function loop() {
 }
 
 loop();
+
+/* ================= DISABLE MOBILE PULL TO REFRESH ================= */
+
+let startY = 0;
+
+window.addEventListener(
+  'touchstart',
+  e => {
+    if (e.touches.length === 1) {
+      startY = e.touches[0].clientY;
+    }
+  },
+  { passive: true }
+);
+
+window.addEventListener(
+  'touchmove',
+  e => {
+    const y = e.touches[0].clientY;
+    const isPullingDown = y > startY;
+
+    /* only block when at top */
+    if (window.scrollY === 0 && isPullingDown) {
+      e.preventDefault(); // ⛔ stops refresh
+    }
+  },
+  { passive: false } // MUST be false to preventDefault
+);

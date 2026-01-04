@@ -385,6 +385,18 @@ canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
   }
 }
 
+/* ================= DISABLE PULL TO REFRESH ================= */
+
+/* Modern browsers (Chrome, Edge, Firefox Android) */
+html, body {
+  overscroll-behavior-y: none;
+}
+
+/* Prevent scroll chaining */
+body {
+  overscroll-behavior: none;
+}
+
 
 </style>
 </head>
