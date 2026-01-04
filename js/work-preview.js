@@ -1,8 +1,8 @@
 /* ==========================================================
-   Work Preview Controller (FIXED)
-   - Desktop: hover → floating preview (detached from scroll)
+   Work Preview Controller (FIXED + ADAPTIVE VIDEO)
+   - Desktop: hover → floating preview
    - Mobile: click → modal popup
-   - Works with scroll-work.js transforms
+   - Auto aspect-ratio support (16:9 / 9:16 / any)
    ========================================================== */
 
 (() => {
@@ -11,14 +11,11 @@
 
   if (!items.length || !previewNodes.length) return;
 
-  /* ===== MOVE PREVIEWS TO BODY (critical fix) ===== */
+  /* ===== MOVE PREVIEWS TO BODY ===== */
   const previewLayer = document.createElement('div');
   previewLayer.className = 'preview-layer';
   document.body.appendChild(previewLayer);
-
-  previewNodes.forEach(p => {
-    previewLayer.appendChild(p);
-  });
+  previewNodes.forEach(p => previewLayer.appendChild(p));
 
   let activeItem = null;
   let activePreview = null;
@@ -31,10 +28,45 @@
   const isMobile = () => window.matchMedia('(max-width: 767px)').matches;
 
   /* ===== TRACK CURSOR ===== */
-  window.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-  }, { passive: true });
+  window.addEventListener(
+    'mousemove',
+    e => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    },
+    { passive: true }
+  );
+
+  /* ===== VIDEO HELPERS ===== */
+  function playVideo(preview) {
+    const video = preview.querySelector('video');
+    if (video) {
+      video.currentTime = 0;
+      video.play().catch(() => {});
+    }
+  }
+
+  function stopVideo(preview) {
+    const video = preview.querySelector('video');
+    if (video) {
+      video.pause();
+      video.currentTime = 0;
+    }
+  }
+
+  function applyVideoAspect(preview) {
+    const video = preview.querySelector('video');
+    const box = preview.querySelector('.preview-box');
+    if (!video || !box) return;
+
+    const apply = () => {
+      const aspect = video.videoWidth / video.videoHeight;
+      box.style.setProperty('--aspect', aspect);
+    };
+
+    if (video.videoWidth) apply();
+    else video.addEventListener('loadedmetadata', apply, { once: true });
+  }
 
   /* ===== DESKTOP PREVIEW ===== */
   function activateDesktop(item) {
@@ -49,6 +81,9 @@
     item.classList.add('active');
     preview.classList.add('active');
 
+    applyVideoAspect(preview);
+    playVideo(preview);
+
     px = mouseX;
     py = mouseY;
 
@@ -58,7 +93,11 @@
 
   function deactivate() {
     if (activeItem) activeItem.classList.remove('active');
-    if (activePreview) activePreview.classList.remove('active');
+
+    if (activePreview) {
+      stopVideo(activePreview);
+      activePreview.classList.remove('active');
+    }
 
     activeItem = null;
     activePreview = null;
@@ -89,6 +128,28 @@
     modal.appendChild(content);
     overlay.appendChild(modal);
     document.body.appendChild(overlay);
+
+    /* ▶️ FORCE VIDEO PLAY + ASPECT ON MOBILE */
+    requestAnimationFrame(() => {
+      const video = content.querySelector('video');
+      const box = content.querySelector('.preview-box');
+
+      if (video && box) {
+        video.muted = true;
+        video.playsInline = true;
+
+        const apply = () => {
+          const aspect = video.videoWidth / video.videoHeight;
+          box.style.setProperty('--aspect', aspect);
+        };
+
+        if (video.videoWidth) apply();
+        else video.addEventListener('loadedmetadata', apply, { once: true });
+
+        video.currentTime = 0;
+        video.play().catch(() => {});
+      }
+    });
 
     const prevOverflow = document.documentElement.style.overflow;
     document.documentElement.style.overflow = 'hidden';
@@ -157,5 +218,4 @@
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) deactivate();
   });
-
 })();
