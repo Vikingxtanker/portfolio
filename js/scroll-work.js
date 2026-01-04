@@ -31,9 +31,6 @@ window.addEventListener('touchmove', e => {
   
   /* MOBILE SCROLL */
   velocity += delta * 0.00011;
-  
-    /* 🔒 clamp to avoid jump */
-  velocity = Math.max(-0.08, Math.min(0.08, velocity));
 
 }, { passive: true });
 
