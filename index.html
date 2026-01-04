@@ -19,15 +19,15 @@ html, body {
 body {
   background-color: hsla(200, 20%, 96%, 1);
   background-image:
-    radial-gradient(at 82% 68%, hsla(190, 85%, 92%, 1) 0px, transparent 50%),
-    radial-gradient(at 20% 75%, hsla(135, 70%, 92%, 1) 0px, transparent 50%),
-    radial-gradient(at 95% 95%, hsla(48, 95%, 92%, 1) 0px, transparent 50%),
-    radial-gradient(at 8% 55%, hsla(28, 95%, 92%, 1) 0px, transparent 50%),
-    radial-gradient(at 55% 18%, hsla(350, 85%, 92%, 1) 0px, transparent 50%),
-    radial-gradient(at 48% 30%, hsla(275, 80%, 92%, 1) 0px, transparent 50%),
-    radial-gradient(at 72% 25%, hsla(215, 80%, 92%, 1) 0px, transparent 50%);
-  background-size: 500% 500%;
-  animation: gradientShift 9s ease infinite;
+    radial-gradient(at 82% 68%, hsla(0, 100%, 71%, 1) 0px, transparent 50%), 
+    radial-gradient(at 20% 75%, hsla(95, 100%, 85%, 1) 0px, transparent 50%), 
+    radial-gradient(at 95% 95%, hsla(121, 59%, 87%, 1) 0px, transparent 50%), 
+    radial-gradient(at 8% 55%, hsla(182, 100%, 87%, 1) 0px, transparent 50%), 
+    radial-gradient(at 55% 18%, hsla(31, 100%, 85%, 1) 0px, transparent 50%), 
+    radial-gradient(at 48% 30%, hsla(268, 74%, 87%, 1) 0px, transparent 50%), 
+    radial-gradient(at 72% 25%, hsla(318, 100%, 85%, 1) 0px, transparent 50%); 
+  background-size: 300% 300%;
+  animation: gradientShift 14s ease infinite;
 }
 
 /* add near the top of your existing styles */
@@ -38,10 +38,40 @@ body.bg-animation-paused {
 
 
 @keyframes gradientShift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position:
+      0% 0%,
+      100% 20%,
+      20% 100%,
+      80% 80%,
+      40% 10%,
+      60% 40%,
+      30% 70%;
+  }
+
+  50% {
+    background-position:
+      60% 40%,
+      20% 80%,
+      80% 20%,
+      30% 60%,
+      70% 90%,
+      10% 30%,
+      90% 50%;
+  }
+
+  100% {
+    background-position:
+      0% 0%,
+      100% 20%,
+      20% 100%,
+      80% 80%,
+      40% 10%,
+      60% 40%,
+      30% 70%;
+  }
 }
+
 
 /* ===== THREE HERO ===== */
 canvas {
@@ -55,14 +85,69 @@ canvas {
 .work-screen {
   position: fixed;
   inset: 0;
-  background: #ffffff;
   z-index: 20;
+
+  /* 🍎 Apple-style warm gradient */
+  background:
+    radial-gradient(
+      at 20% 25%,
+      rgba(242, 137, 137, 0.45),
+      transparent 15%
+    ),
+    radial-gradient(
+      at 80% 70%,
+      rgba(238, 96, 96, 0.55),
+      transparent 25%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(238, 96, 96, 1),
+      rgba(242, 137, 137, 1)
+    );
+
+  background-size: 200% 200%;
+  animation: workGradientShift 6s ease-in-out infinite;
 
   /* IMPORTANT: start offscreen for scroll animation */
   transform: translateY(100%);
 
   padding: 96px 8vw;
 }
+@keyframes workGradientShift {
+  0% {
+    background-position:
+      0% 0%,
+      100% 20%,
+      20% 100%,
+      80% 80%,
+      40% 10%,
+      60% 40%,
+      30% 70%;
+  }
+
+  50% {
+    background-position:
+      60% 40%,
+      20% 80%,
+      80% 20%,
+      30% 60%,
+      70% 90%,
+      10% 30%,
+      90% 50%;
+  }
+
+  100% {
+    background-position:
+      0% 0%,
+      100% 20%,
+      20% 100%,
+      80% 80%,
+      40% 10%,
+      60% 40%,
+      30% 70%;
+  }
+}
+
 
 /* layout */
 .work-wrapper {
@@ -132,6 +217,45 @@ canvas {
   font-size: 13px;
   font-weight: 500;
   opacity: 0.55;
+}
+
+/* === Apple-style hover popup for work items === */
+.work-nav li {
+  position: relative;
+  padding: 8px 14px;
+  border-radius: 18px;
+
+  background: transparent;
+
+  transition:
+    background-color 0.25s cubic-bezier(.22,1,.36,1),
+    box-shadow 0.25s cubic-bezier(.22,1,.36,1),
+    transform 0.25s cubic-bezier(.22,1,.36,1),
+    opacity 0.25s ease;
+}
+
+/* subtle dark gray pill on hover */
+.work-nav li:hover {
+  background: rgba(128, 128, 128, 0.12); /* 👈 correct */
+  
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  transform: translateX(2px) scale(1.02);
+  opacity: 1;
+}
+
+/* keep text crisp */
+.work-nav li span {
+  position: relative;
+  z-index: 1;
+}
+
+.work-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 /* RIGHT PREVIEW (floating layer) */
@@ -215,7 +339,7 @@ canvas {
   inset: 0;
   z-index: 9999;
   background: rgba(0,0,0,0.55);
-  backdrop-filter: blur(6px);
+  backdrop-filter: saturate(180%) blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -263,6 +387,28 @@ canvas {
   z-index: 50;
 }
 
+
+.work-screen {
+  color: #fff;
+}
+
+.work-nav li {
+  opacity: 0.65;
+}
+
+.work-nav li:hover,
+.work-nav li.active {
+  opacity: 1;
+}
+.work-heading {
+  color: rgba(255,255,255,0.95);
+}
+.work-nav li:hover {
+  background: rgba(255,255,255,0.16);
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.25),
+    inset 0 0 0 1px rgba(255,255,255,0.18);
+}
 
 </style>
 </head>
