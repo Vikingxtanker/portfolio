@@ -1,6 +1,18 @@
 /* ==========================================================
    scroll-work2.js — IMMEDIATE SMOOTH SNAP (NO COAST)
    Clean glide, no pause, no spring
+   + FORCE RESET TO HERO ON REFRESH
+   ========================================================== */
+
+/* ==========================================================
+   🔒 DISABLE BROWSER SCROLL RESTORATION
+   ========================================================== */
+if ('scrollRestoration' in history) {
+  history.scrollRestoration = 'manual';
+}
+
+/* ==========================================================
+   CORE STATE
    ========================================================== */
 
 let target = 0;
@@ -50,7 +62,7 @@ window.addEventListener(
    MOBILE STATE
    ========================================================== */
 
-let mPos = window.scrollY;
+let mPos = 0;
 let mVel = 0;
 let mTouching = false;
 
@@ -60,14 +72,13 @@ let snapStart = 0;
 let snapFrom = 0;
 let snapTo = 0;
 
-/* tuning */
+/* tuning (your current values preserved) */
 const INPUT_FORCE = 0.35;
 const DAMPING = 0.85;
 const STOP_VELOCITY = 0.06;
 const SNAP_THRESHOLD = 0.5;
-const SNAP_DURATION = 750; // 🔑 slow, smooth glide (ms)
-const MAX_VELOCITY = 40; // px per frame cap
-
+const SNAP_DURATION = 750;
+const MAX_VELOCITY = 40;
 
 /* easing */
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
@@ -105,9 +116,13 @@ window.addEventListener(
   'touchmove',
   e => {
     if (!isMobile() || !mTouching) return;
+
     const y = e.touches[0].clientY;
     mVel += (lastY - y) * INPUT_FORCE;
-	mVel = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, mVel));
+
+    /* clamp velocity */
+    mVel = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, mVel));
+
     lastY = y;
   },
   { passive: true }
@@ -129,7 +144,6 @@ function mobileLoop(ts) {
     return;
   }
 
-  /* manual scrolling */
   if (!snapActive) {
     mVel *= DAMPING;
     mPos += mVel;
@@ -138,7 +152,6 @@ function mobileLoop(ts) {
       document.documentElement.scrollHeight - window.innerHeight;
     mPos = Math.max(0, Math.min(maxScroll, mPos));
 
-    /* decide snap immediately after stop */
     if (!mTouching && Math.abs(mVel) < STOP_VELOCITY) {
       const ratio = getWorkRatio();
 
@@ -152,7 +165,6 @@ function mobileLoop(ts) {
     }
   }
 
-  /* glide snap */
   if (snapActive) {
     const t = Math.min(1, (ts - snapStart) / SNAP_DURATION);
     const eased = easeOutCubic(t);
@@ -205,6 +217,29 @@ function desktopLoop() {
 
   requestAnimationFrame(desktopLoop);
 }
+
+/* ==========================================================
+   HARD RESET TO HERO ON PAGE LOAD
+   ========================================================== */
+
+function resetToTop() {
+  window.scrollTo(0, 0);
+
+  /* reset mobile */
+  mPos = 0;
+  mVel = 0;
+  mTouching = false;
+  snapActive = false;
+
+  /* reset desktop */
+  target = 0;
+  current = 0;
+  velocity = 0;
+
+  resumeHero();
+}
+
+window.addEventListener('load', resetToTop);
 
 /* ==========================================================
    INIT
