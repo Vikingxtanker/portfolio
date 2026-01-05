@@ -389,27 +389,6 @@ canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 }
 
 @media (max-width: 767px) {
-  html, body {
-    scroll-behavior: auto; /* prevent conflicts */
-    overscroll-behavior: none;
-    -webkit-overflow-scrolling: auto; /* disable native momentum */
-  }
-}
-
-
-/* ================= DISABLE PULL TO REFRESH ================= */
-
-/* Modern browsers (Chrome, Edge, Firefox Android) */
-html, body {
-  overscroll-behavior-y: none;
-}
-
-/* Prevent scroll chaining */
-body {
-  overscroll-behavior: none;
-}
-
-@media (max-width: 767px) {
 
   /* 🔑 Start with hero visible */
   .work-screen {
@@ -506,6 +485,60 @@ body {
 
 <!-- ===== LIBRARIES ===== -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
+
+<!-- ===== LENIS ===== -->
+<script type="module">
+  import Lenis from 'https://cdn.jsdelivr.net/npm/@studio-freight/lenis/+esm';
+
+  // 1️⃣ Create Lenis instance
+  const lenis = new Lenis({
+    duration: 1.15,          // smoothness
+    smoothWheel: true,
+    smoothTouch: true,       // 🔑 makes mobile perfect
+    touchMultiplier: 1.1,    // finger accuracy
+    wheelMultiplier: 1,
+    easing: t => 1 - Math.pow(1 - t, 4)
+  });
+
+  // 2️⃣ Hook Lenis into requestAnimationFrame
+  function raf(time) {
+    lenis.raf(time);
+    requestAnimationFrame(raf);
+  }
+  requestAnimationFrame(raf);
+
+  // 3️⃣ Snap logic (hero ↔ work)
+  const work = document.getElementById('work');
+  let snapTimer = null;
+
+  lenis.on('scroll', () => {
+    // wait until user stops scrolling
+    clearTimeout(snapTimer);
+
+    snapTimer = setTimeout(() => {
+      const vh = window.innerHeight;
+      const rect = work.getBoundingClientRect();
+
+      const visibleRatio =
+        (Math.min(vh, rect.bottom) - Math.max(0, rect.top)) / vh;
+
+      if (visibleRatio > 0.5) {
+        // snap to work
+        lenis.scrollTo(work, { duration: 0.8 });
+      } else {
+        // snap back to hero
+        lenis.scrollTo(0, { duration: 0.8 });
+      }
+    }, 120); // debounce = smooth, no jitter
+  });
+
+  // 4️⃣ Always start at hero on refresh
+  window.addEventListener('load', () => {
+    lenis.scrollTo(0, { immediate: true });
+  });
+</script>
+
+
 
 <!-- ===== APP SCRIPTS (keep your existing app scripts) ===== -->
 <script src="js/hero-text2.js"></script>

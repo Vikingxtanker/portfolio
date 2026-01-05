@@ -1,9 +1,7 @@
 /* ==========================================================
-   scroll-work2.js — PINPOINT TOUCH + TRUE INERTIA + SNAP
-   - 1:1 finger tracking while touching
-   - REAL momentum after release
-   - No jitter, no oscillation
-   - Snap logic preserved
+   scroll-work2.js — DESKTOP ONLY + VELOCITY-DRIVEN SNAP
+   Lenis handles mobile scrolling + inertia
+   Snap blends naturally with momentum
    ========================================================== */
 
 /* Disable browser scroll restoration */
@@ -12,7 +10,7 @@ if ('scrollRestoration' in history) {
 }
 
 /* ==========================================================
-   CORE STATE
+   CORE STATE (DESKTOP ONLY)
    ========================================================== */
 
 let target = 0;
@@ -44,6 +42,54 @@ function resumeHero() {
 }
 
 /* ==========================================================
+   VELOCITY-DRIVEN SNAP (MOBILE — LENIS)
+   ========================================================== */
+
+let snapping = false;
+
+if (typeof lenis !== 'undefined') {
+  lenis.on('scroll', ({ velocity }) => {
+    if (snapping) return;
+
+    const v = Math.abs(velocity);
+
+    /* still moving fast → let inertia continue */
+    if (v > 0.15) return;
+
+    const vh = window.innerHeight;
+    const rect = work.getBoundingClientRect();
+
+    const visibleRatio =
+      (Math.min(vh, rect.bottom) - Math.max(0, rect.top)) / vh;
+
+    const goingDown = velocity > 0;
+
+    let snapTarget;
+    if (visibleRatio > 0.5 || (goingDown && visibleRatio > 0.35)) {
+      snapTarget = work;
+    } else {
+      snapTarget = 0;
+    }
+
+    /* duration flows with remaining velocity */
+    const duration = Math.min(
+      1.05,
+      Math.max(0.45, v * 2.2)
+    );
+
+    snapping = true;
+
+    lenis.scrollTo(snapTarget, {
+      duration,
+      easing: t => 1 - Math.pow(1 - t, 3),
+      onComplete: () => {
+        snapping = false;
+      }
+    });
+  });
+}
+
+/* ==========================================================
    DESKTOP INPUT (UNCHANGED)
    ========================================================== */
 
@@ -56,163 +102,6 @@ window.addEventListener(
   },
   { passive: true }
 );
-
-/* ==========================================================
-   MOBILE STATE
-   ========================================================== */
-
-let mPos = 0;            // px
-let mVel = 0;            // px per frame
-let mTouching = false;
-
-/* snap */
-let snapActive = false;
-let snapStart = 0;
-let snapFrom = 0;
-let snapTo = 0;
-
-/* tuning (frame-based, stable) */
-const FRICTION = 0.92;          // inertia decay
-const STOP_VELOCITY = 0.5;     // px/frame
-const SNAP_THRESHOLD = 0.5;
-const SNAP_DURATION = 750;
-const MAX_VELOCITY = 55;
-
-/* ==========================================================
-   HELPERS
-   ========================================================== */
-
-const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
-
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
-
-function getWorkRatio() {
-  const r = work.getBoundingClientRect();
-  const vh = window.innerHeight;
-  return Math.max(
-    0,
-    Math.min(1, (Math.min(vh, r.bottom) - Math.max(0, r.top)) / vh)
-  );
-}
-
-/* ==========================================================
-   MOBILE INPUT — TRUE PINPOINT + VELOCITY CAPTURE
-   ========================================================== */
-
-let lastY = 0;
-let lastTime = 0;
-let releaseVelocity = 0;
-
-window.addEventListener(
-  'touchstart',
-  e => {
-    if (!isMobile()) return;
-
-    mTouching = true;
-    snapActive = false;
-    pauseHero();
-
-    mVel = 0;
-    releaseVelocity = 0;
-
-    lastY = e.touches[0].clientY;
-    lastTime = performance.now();
-  },
-  { passive: true }
-);
-
-window.addEventListener(
-  'touchmove',
-  e => {
-    if (!isMobile() || !mTouching) return;
-
-    const y = e.touches[0].clientY;
-    const now = performance.now();
-
-    const dy = lastY - y;
-    const dt = Math.max(1, now - lastTime);
-
-    /* 1️⃣ exact finger follow */
-    mPos += dy;
-
-    const maxScroll =
-      document.documentElement.scrollHeight - window.innerHeight;
-    mPos = clamp(mPos, 0, maxScroll);
-
-    /* 2️⃣ capture REAL swipe velocity (px per frame approx) */
-    const instantVel = (dy / dt) * 16.6; // normalize to ~60fps
-    releaseVelocity = releaseVelocity * 0.7 + instantVel * 0.3;
-
-    window.scrollTo(0, mPos);
-
-    lastY = y;
-    lastTime = now;
-  },
-  { passive: true }
-);
-
-window.addEventListener('touchend', () => {
-  if (!isMobile()) return;
-
-  /* 🔑 inertia begins here */
-  mVel = clamp(releaseVelocity, -MAX_VELOCITY, MAX_VELOCITY);
-
-  mTouching = false;
-});
-
-/* ==========================================================
-   MOBILE LOOP — INERTIA + SNAP (NO JITTER)
-   ========================================================== */
-
-function mobileLoop(ts) {
-  if (!isMobile()) {
-    requestAnimationFrame(mobileLoop);
-    return;
-  }
-
-  if (!mTouching && !snapActive) {
-    /* inertia */
-    mVel *= FRICTION;
-    mPos += mVel;
-
-    const maxScroll =
-      document.documentElement.scrollHeight - window.innerHeight;
-
-    if (mPos <= 0 || mPos >= maxScroll) {
-      mPos = clamp(mPos, 0, maxScroll);
-      mVel *= 0.3; // kill bounce
-    }
-
-    /* snap decision */
-    if (Math.abs(mVel) < STOP_VELOCITY) {
-      const ratio = getWorkRatio();
-      snapActive = true;
-      snapStart = ts;
-      snapFrom = mPos;
-      snapTo = ratio >= SNAP_THRESHOLD ? work.offsetTop : 0;
-      mVel = 0;
-
-      if (snapTo !== 0) pauseHero();
-    }
-  }
-
-  /* snap glide */
-  if (snapActive) {
-    const t = Math.min(1, (ts - snapStart) / SNAP_DURATION);
-    mPos = snapFrom + (snapTo - snapFrom) * easeOutCubic(t);
-
-    if (t >= 1) {
-      snapActive = false;
-      mPos = snapTo;
-      if (snapTo === 0) resumeHero();
-    }
-  }
-
-  window.scrollTo(0, Math.round(mPos));
-  requestAnimationFrame(mobileLoop);
-}
 
 /* ==========================================================
    DESKTOP LOOP (UNCHANGED)
@@ -231,7 +120,7 @@ function desktopLoop() {
     target += (target > 0.5 ? 1 - target : -target) * 0.08;
   }
 
-  target = clamp(target, 0, 1);
+  target = Math.max(0, Math.min(1, target));
   current += (target - current) * 0.08;
 
   if (hero) {
@@ -245,7 +134,6 @@ function desktopLoop() {
   }
 
   current <= 0.02 ? resumeHero() : pauseHero();
-
   requestAnimationFrame(desktopLoop);
 }
 
@@ -255,9 +143,6 @@ function desktopLoop() {
 
 window.addEventListener('load', () => {
   window.scrollTo(0, 0);
-  mPos = 0;
-  mVel = 0;
-  snapActive = false;
   resumeHero();
 });
 
@@ -265,5 +150,4 @@ window.addEventListener('load', () => {
    INIT
    ========================================================== */
 
-requestAnimationFrame(mobileLoop);
 desktopLoop();
