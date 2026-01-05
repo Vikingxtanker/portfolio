@@ -66,6 +66,8 @@ const DAMPING = 0.85;
 const STOP_VELOCITY = 0.06;
 const SNAP_THRESHOLD = 0.5;
 const SNAP_DURATION = 750; // 🔑 slow, smooth glide (ms)
+const MAX_VELOCITY = 40; // px per frame cap
+
 
 /* easing */
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
@@ -105,6 +107,7 @@ window.addEventListener(
     if (!isMobile() || !mTouching) return;
     const y = e.touches[0].clientY;
     mVel += (lastY - y) * INPUT_FORCE;
+	mVel = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, mVel));
     lastY = y;
   },
   { passive: true }
