@@ -368,22 +368,34 @@ canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 /* ================= HIDE SCROLLBAR (MOBILE ONLY) ================= */
 @media (max-width: 767px) {
 
-  /* Chrome, Safari, Edge */
+  /* Chrome, Edge, Safari */
+  html::-webkit-scrollbar,
   body::-webkit-scrollbar {
     width: 0;
     height: 0;
   }
 
   /* Firefox */
+  html,
   body {
     scrollbar-width: none;
   }
 
-  /* IE / old Edge */
+  /* Old Edge / IE */
+  html,
   body {
     -ms-overflow-style: none;
   }
 }
+
+@media (max-width: 767px) {
+  html, body {
+    scroll-behavior: auto; /* prevent conflicts */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto; /* disable native momentum */
+  }
+}
+
 
 /* ================= DISABLE PULL TO REFRESH ================= */
 
@@ -397,6 +409,14 @@ body {
   overscroll-behavior: none;
 }
 
+@media (max-width: 767px) {
+
+  /* 🔑 Start with hero visible */
+  .work-screen {
+    margin-top: 100vh;   /* pushes work BELOW hero */
+    opacity: 1;
+  }
+}
 
 </style>
 </head>
@@ -489,7 +509,7 @@ body {
 
 <!-- ===== APP SCRIPTS (keep your existing app scripts) ===== -->
 <script src="js/hero-text.js"></script>
-<script src="js/scroll-work2.js"></script>
+<script src="js/scroll-work.js"></script>
 <script src="js/work-preview.js"></script>
 <script src="js/hero-bg-control.js"></script>
 
