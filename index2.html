@@ -6,82 +6,34 @@
 <title>Gaurav Gaikwad</title>
 
 <style>
+/* ---------------- basic reset ---------------- */
 * { margin:0; padding:0; box-sizing:border-box; }
-
-html, body {
-  height:100%;
-  overflow:hidden;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont,
-               "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
+html, body { height:100%; overflow:hidden; font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
 
 /* ===== HERO BACKGROUND ===== */
 body {
   background-color: hsla(200, 20%, 96%, 1);
   background-image:
-    radial-gradient(at 48% 30%, hsla(268, 74%, 87%, 1) 0px, transparent 50%), 
-    radial-gradient(at 20% 75%, hsla(95, 100%, 85%, 1) 0px, transparent 50%), 
-    radial-gradient(at 95% 95%, hsla(121, 59%, 87%, 1) 0px, transparent 50%), 
-    radial-gradient(at 8% 55%, hsla(182, 100%, 87%, 1) 0px, transparent 50%), 
-    radial-gradient(at 55% 18%, hsla(31, 100%, 85%, 1) 0px, transparent 50%), 
-    radial-gradient(at 82% 68%, hsla(0, 100%, 71%, 1) 0px, transparent 50%), 
-    radial-gradient(at 72% 25%, hsla(318, 100%, 85%, 1) 0px, transparent 50%); 
+    radial-gradient(at 48% 30%, hsla(268, 74%, 87%, 1) 0px, transparent 50%),
+    radial-gradient(at 20% 75%, hsla(95, 100%, 85%, 1) 0px, transparent 50%),
+    radial-gradient(at 95% 95%, hsla(121, 59%, 87%, 1) 0px, transparent 50%),
+    radial-gradient(at 8% 55%, hsla(182, 100%, 87%, 1) 0px, transparent 50%),
+    radial-gradient(at 55% 18%, hsla(31, 100%, 85%, 1) 0px, transparent 50%),
+    radial-gradient(at 82% 68%, hsla(0, 100%, 71%, 1) 0px, transparent 50%),
+    radial-gradient(at 72% 25%, hsla(318, 100%, 85%, 1) 0px, transparent 50%);
   background-size: 500% 500%;
   animation: gradientShift 14s ease infinite;
 }
-
-/* add near the top of your existing styles */
-body.bg-animation-paused {
-  /* force pause the background animation */
-  animation-play-state: paused !important;
-}
-
-
+body.bg-animation-paused { animation-play-state: paused !important; }
 @keyframes gradientShift {
-  0% {
-    background-position:
-      0% 0%,
-      100% 20%,
-      20% 100%,
-      80% 80%,
-      40% 10%,
-      60% 40%,
-      30% 70%;
-  }
-
-  50% {
-    background-position:
-      60% 40%,
-      20% 80%,
-      80% 20%,
-      30% 60%,
-      70% 90%,
-      10% 30%,
-      90% 50%;
-  }
-
-  100% {
-    background-position:
-      0% 0%,
-      100% 20%,
-      20% 100%,
-      80% 80%,
-      40% 10%,
-      60% 40%,
-      30% 70%;
-  }
+  0% { background-position: 0% 0%, 100% 20%, 20% 100%, 80% 80%, 40% 10%, 60% 40%, 30% 70%; }
+  50% { background-position: 60% 40%, 20% 80%, 80% 20%, 30% 60%, 70% 90%, 10% 30%, 90% 50%; }
+  100% { background-position: 0% 0%, 100% 20%, 20% 100%, 80% 80%, 40% 10%, 60% 40%, 30% 70%; }
 }
 
+/* ===== Three canvas (keeps as before) ===== */
+canvas { position: fixed; inset: 0; pointer-events: none; z-index: 1; }
 
-/* ===== THREE HERO ===== */
-canvas {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* ---------- Static work-screen gradient (replace animated version) ---------- */
 .work-screen {
   position: fixed;
   inset: 0;
@@ -89,251 +41,134 @@ canvas {
   padding: 96px 8vw;
   color: #fff;
 
-  /* static combo of the same warm colours you used, positioned so colors are visible */
   background:
-    radial-gradient(
-      at 20% 25%,
-      rgba(242, 137, 137, 0.45) 0%,
-      rgba(242, 137, 137, 0.00) 35%
-    ),
-    radial-gradient(
-      at 80% 70%,
-      rgba(238, 96, 96, 0.55) 0%,
-      rgba(238, 96, 96, 0.00) 40%
-    ),
-    linear-gradient(135deg, rgba(238, 96, 96, 1) 0%, rgba(242, 137, 137, 1) 100%);
+    radial-gradient(at 20% 25%, rgba(242,137,137,0.45), transparent 35%),
+    radial-gradient(at 80% 70%, rgba(238,96,96,0.55), transparent 40%),
+    linear-gradient(135deg, rgba(238,96,96,1), rgba(242,137,137,1));
 
-  /* static placement — tuned so the two radials sit over the linear base */
-  background-position: 20% 25%, 80% 70%, 0% 0%;
   background-size: cover;
   background-repeat: no-repeat;
-
-  /* keep existing transform/entry behaviour if you rely on it */
-  transform: translateY(100%); /* keep this if scroll animation depends on it */
+  transform: translateY(100%);
 }
 
-/* layout */
+/* ================= LAYOUT ================= */
 .work-wrapper {
   display: grid;
   grid-template-columns: 1fr 1.2fr;
   height: 100%;
-  align-items: start;
   gap: 6vw;
 }
 
-/* LEFT COLUMN */
-/* ---------- Darker glass panel for work-left ---------- */
+/* =========================================================
+   VISIONOS-LIKE WORK CONTAINER (THIS IS THE KEY CHANGE)
+   ========================================================= */
 .work-left {
   position: sticky;
   top: 96px;
-
+  max-width: 520px;
   padding: 48px 42px;
   border-radius: 32px;
 
-  /* darker red glass than the work background */
-  background:
-    linear-gradient(
-      180deg,
-      rgba(160, 35, 35, 0.55),
-      rgba(110, 20, 20, 0.55)
-    );
+  /* visionOS dark translucent container */
+  background: rgba(110, 40, 40, 0.55);
+  backdrop-filter: blur(22px) saturate(140%);
+  -webkit-backdrop-filter: blur(22px) saturate(140%);
 
-  /* frosted glass effect */
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-
-  border: 1px solid rgba(255, 255, 255, 0.12);
-
+  /* soft outline + depth */
+  border: 1px solid rgba(255,255,255,0.14);
   box-shadow:
-    0 30px 80px rgba(0,0,0,0.35),
-    inset 0 1px 0 rgba(255,255,255,0.06);
+    0 40px 90px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08);
 
-  /* subtle separation from right preview */
-  max-width: 520px;
+  isolation: isolate;
 }
 
+/* subtle internal lighting */
 .work-left::after {
   content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-
   background: radial-gradient(
     120% 80% at 30% 20%,
-    rgba(255, 120, 120, 0.18),
+    rgba(255,140,140,0.22),
     transparent 60%
   );
-
-  opacity: 0.6;
 }
 
-.work-nav li {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255,255,255,0.18);
-}
-
-.work-nav li:hover,
-.work-nav li.active {
-  background: rgba(255, 255, 255, 0.18);
-}
-
-
-/* heading */
+/* ================= HEADING ================= */
 .work-heading {
   font-size: clamp(26px, 2.8vw, 34px);
   font-weight: 600;
   letter-spacing: -0.02em;
-  margin-bottom: 48px;
+  margin-bottom: 28px;
+  color: rgba(255,255,255,0.95);
 }
 
-/* project list */
+/* ================= LABEL LIST (visionOS style) ================= */
 .work-nav {
   list-style: none;
-}
-
-/* ---------- Liquid-glass buttons for work-nav items ---------- */
-.work-nav {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 14px;
 }
 
-/* base pill style (glass) */
+/* label pills */
 .work-nav li {
-  position: relative;          /* for pseudo elements */
+  position: relative;
   display: flex;
-  align-items: baseline;
-  gap: 14px;
-
-  width: fit-content;
-  max-width: 100%;
-  white-space: nowrap;
+  align-items: center;
+  justify-content: space-between;
 
   padding: 12px 18px;
-  border-radius: 30px;
+  border-radius: 999px;
 
-  /* glassy translucent fill — tuned for your warm background */
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.10);
-  -webkit-backdrop-filter: blur(8px) saturate(140%);
-  backdrop-filter: blur(8px) saturate(140%);
+  background: rgba(255,255,255,0.10);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 
+  border: 1px solid rgba(255,255,255,0.18);
   box-shadow:
-    0 8px 20px rgba(0,0,0,0.18),
-    inset 0 1px 0 rgba(255,255,255,0.03);
+    inset 0 1px 0 rgba(255,255,255,0.18),
+    0 8px 22px rgba(0,0,0,0.25);
 
-  overflow: hidden;            /* contain sheen/glow */
-  transition:
-    background-color 260ms cubic-bezier(.22,1,.36,1),
-    box-shadow 260ms cubic-bezier(.22,1,.36,1),
-    transform 260ms cubic-bezier(.22,1,.36,1),
-    opacity 200ms ease,
-    border-color 260ms ease;
   cursor: pointer;
-
-  /* slightly reduced default opacity so hover pops more */
-  opacity: 0.65;
+  transition:
+    background 0.25s cubic-bezier(.22,1,.36,1),
+    transform 0.25s cubic-bezier(.22,1,.36,1),
+    box-shadow 0.25s cubic-bezier(.22,1,.36,1);
 }
 
-/* glossy highlight (sheen) */
-.work-nav li::before {
-  content: "";
-  position: absolute;
-  top: -60%;
-  left: -30%;
-  width: 160%;
-  height: 80%;
-  transform: rotate(-18deg);
-  pointer-events: none;
-
-  /* subtle angled glossy streak */
-  background: linear-gradient(180deg,
-    rgba(255,255,255,0.22) 0%,
-    rgba(255,255,255,0.06) 20%,
-    rgba(255,255,255,0.0) 60%);
-  filter: blur(2px);
-  opacity: 0;                  /* reveal on hover */
-  transition: opacity 260ms ease, transform 260ms ease;
-}
-
-/* soft blurred halo/glow under the pill on hover */
-.work-nav li::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 110%;
-  height: 110%;
-  transform: translateY(6px) scale(0.98);
-  z-index: 0;
-  pointer-events: none;
-
-  /* low-contrast glow tuned to background — helps the pill "float" */
-  background: radial-gradient(60% 40% at 50% 60%,
-    rgba(255, 120, 120, 0.08),
-    rgba(255, 80, 80, 0.04) 40%,
-    rgba(0,0,0,0) 60%);
-  filter: blur(12px) saturate(120%);
-  opacity: 0;                  /* reveal on hover */
-  transition: opacity 260ms ease, transform 260ms ease;
-}
-
-/* hover / active state — frosted + glossy */
+/* hover / active like visionOS */
 .work-nav li:hover,
 .work-nav li.active {
-  opacity: 1;
-  transform: translateX(2px) scale(1.02);
-
-  /* brighten the glass and strengthen the outline */
-  background: rgba(255, 255, 255, 0.14);
-  border-color: rgba(255,255,255,0.20);
+  background: rgba(255,255,255,0.18);
+  transform: translateX(6px);
   box-shadow:
-    0 14px 38px rgba(0,0,0,0.28),
-    inset 0 1px 0 rgba(255,255,255,0.05);
+    inset 0 1px 0 rgba(255,255,255,0.25),
+    0 14px 34px rgba(0,0,0,0.35);
 }
 
-/* reveal sheen & glow on hover */
-.work-nav li:hover::before,
-.work-nav li.active::before {
-  opacity: 1;
-  transform: rotate(-16deg) translateY(-6%);
+/* text */
+.work-nav .title {
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
-.work-nav li:hover::after,
-.work-nav li.active::after {
-  opacity: 1;
-  transform: translateY(0) scale(1);
+.work-nav .year {
+  font-size: 13px;
+  opacity: 0.85;
 }
 
-/* keep text above pseudo elements */
-.work-nav li span { position: relative; z-index: 1; }
+/* ================= RIGHT PREVIEW ================= */
 
-/* reduce motion for users who prefer it */
-@media (prefers-reduced-motion: reduce) {
-  .work-nav li,
-  .work-nav li::before,
-  .work-nav li::after {
-    transition: none !important;
-  }
-  .work-nav li { transform: none !important; }
-}
-
-/* RIGHT PREVIEW (floating layer) */
-.work-right {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-}
-
-/* preview card */
 .preview {
   position: absolute;
   opacity: 0;
   transform: translateY(-50%) scale(0.94);
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  will-change: transform, opacity;
 }
 
 .preview.active {
@@ -341,38 +176,122 @@ canvas {
   transform: scale(1);
 }
 
-/* preview placeholder */
+
 .preview-box {
   display: inline-flex;      /* 🔑 shrink-wrap content */
   border-radius: 22px;
   overflow: hidden;
-
   box-shadow:
     0 30px 80px rgba(0,0,0,0.12),
     0 8px 24px rgba(0,0,0,0.08);
 }
 
-
-
-/* ===== VIDEO PREVIEW ===== */
-.video-preview {
-  padding: 0;
-  overflow: hidden;
+.preview {
+  will-change: transform, opacity;
+  backface-visibility: hidden;
 }
 
-/* Default: desktop preview = no black bars */
+/* ================= VIDEO ================= */
 .preview-video {
   max-width: min(60vw, 900px);
   max-height: 70vh;
-
-  width: auto;
-  height: auto;
-
   object-fit: contain;
   display: block;
+  width: auto;
+  height: auto;
+}
+
+/* ===== MOBILE POPUP (CONTENT-DRIVEN) ===== */
+.work-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: saturate(180%) blur(2px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px;
+}
+
+/* 🔑 KEY CHANGE: shrink-wrap modal */
+.work-modal {
+  position: relative;
+  background: transparent;            /* ❌ no white box */
+  border-radius: 18px;
+  box-shadow: none;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+/* remove padding that forces box size */
+.work-modal-content {
+  padding: 0;
+}
+
+/* preview-box controls size */
+.work-modal .preview-box {
+  display: inline-flex;
+  width: auto;
+  height: auto;
+  max-width: 94vw;
+  max-height: 85vh;
+  border-radius: 16px;
+  overflow: hidden;
+
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.35),
+    0 10px 30px rgba(0,0,0,0.25);
+}
+
+/* media adapts naturally */
+.work-modal video,
+.work-modal img {
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 94vw;
+  max-height: 85vh;
+  object-fit: contain;
+  background: #000;
+}
+
+/* close button floats above content */
+.work-modal-close {
+  position: absolute;
+  top: -46px;
+  right: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(255,255,255,0.9);
+  font-size: 22px;
+  cursor: pointer;
 }
 
 
+.work-modal-content {
+  padding: 24px;
+}
+
+/* ensure preview-box fits responsibly inside modal */
+.work-modal .preview-box {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+}
+
+/* floating preview layer (detached from scroll) */
+.preview-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+}
 
 /* Mobile modal: preserve full video */
 .work-modal .preview-video {
@@ -386,89 +305,117 @@ canvas {
 }
 
 
-
-
-/* ===== MOBILE POPUP ===== */
+/* small-screen tweaks */
 @media (max-width: 767px) {
+  .work-modal { border-radius: 12px; }
+  .work-modal .preview-box { border-radius: 10px; }
+  .work-modal-close { top: 8px; right: 8px; width: 36px; height: 36px; }
+}
+
+/* ================= MOBILE LAYOUT FIX ================= */
+@media (max-width: 767px) {
+
+  /* allow page to scroll normally */
+  html, body {
+    height: auto;
+    overflow-y: auto;
+  }
+
+  /* work section should NOT be fixed on mobile */
+  .work-screen {
+    position: relative;
+    inset: auto;
+    min-height: 100vh;
+    padding: 72px 6vw 96px;
+    transform: none;
+  }
+
+  /* stack layout vertically */
+  .work-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    height: auto;
+  }
+
+  /* disable sticky behavior on mobile */
+  .work-left {
+    position: relative;
+    top: auto;
+    max-width: 100%;
+    padding: 32px 24px;
+    border-radius: 28px;
+  }
+
+  /* restore proper list spacing */
+  .work-nav {
+    gap: 10px;
+  }
+
+  /* ensure pills stay on ONE ROW */
+  .work-nav li {
+    width: 100%;
+    justify-content: space-between;
+    white-space: nowrap;
+  }
+
+  /* preview column already hidden on mobile */
   .work-right {
     display: none;
   }
 }
 
-.work-modal-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  background: rgba(0,0,0,0.55);
-  backdrop-filter: saturate(180%) blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
+/* ================= HIDE SCROLLBAR (MOBILE ONLY) ================= */
+@media (max-width: 767px) {
+
+  /* Chrome, Edge, Safari */
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+
+  /* Firefox */
+  html,
+  body {
+    scrollbar-width: none;
+  }
+
+  /* Old Edge / IE */
+  html,
+  body {
+    -ms-overflow-style: none;
+  }
 }
 
-.work-modal {
-  position: relative;
-  width: 100%;
-  max-width: min(1080px, 94vw);
-  max-height: 94vh;
-  background: #fff;
-  border-radius: 18px;
-  box-shadow: 0 30px 80px rgba(0,0,0,0.25);
-  overflow: hidden;
-}
-
-.work-modal-close {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  border: none;
-  background: rgba(0,0,0,0.06);
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.work-modal-content {
-  padding: 24px;
-}
-
-.work-modal .preview-box {
-  width: 100%;
-  height: auto;
-  max-height: 70vh;
-}
-/* floating preview layer (detached from scroll) */
-.preview-layer {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 50;
+@media (max-width: 767px) {
+  html, body {
+    scroll-behavior: auto; /* prevent conflicts */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto; /* disable native momentum */
+  }
 }
 
 
-.work-screen {
-  color: #fff;
+/* ================= DISABLE PULL TO REFRESH ================= */
+
+/* Modern browsers (Chrome, Edge, Firefox Android) */
+html, body {
+  overscroll-behavior-y: none;
 }
 
-.work-nav li {
-  opacity: 0.65;
+/* Prevent scroll chaining */
+body {
+  overscroll-behavior: none;
 }
 
-.work-nav li:hover,
-.work-nav li.active {
-  opacity: 1;
-}
-.work-heading {
-  color: rgba(255,255,255,0.95);
-}
-.work-nav li:hover {
-  background: rgba(255,255,255,0.16);
-  box-shadow:
-    0 10px 30px rgba(0,0,0,0.25),
-    inset 0 0 0 1px rgba(255,255,255,0.18);
+@media (max-width: 767px) {
+
+  /* 🔑 Start with hero visible */
+  .work-screen {
+    margin-top: 100vh;   /* pushes work BELOW hero */
+    opacity: 1;
+  }
 }
 
 </style>
@@ -517,7 +464,7 @@ canvas {
       loop
       muted
       playsinline
-      poster="https://www.dl.dropboxusercontent.com/s/85io6p4762caep4/BettyPoster3.png"
+      poster="assets/catloading.png"
     >
       <source
         src="assets/IS1000Bitrate.mp4"
@@ -526,10 +473,24 @@ canvas {
     </video>
   </div>
 </div>
-	  
-	  <div class="preview" id="preview-health">
-        <div class="preview-box">Health Checkup Camp Preview</div>
-      </div>
+
+      <div class="preview" id="preview-health">
+  <div class="preview-box video-preview">
+    <video
+      class="preview-video"
+      preload="metadata"
+      loop
+      muted
+      playsinline
+      poster="assets/catloading.png"
+    >
+      <source
+        src="no"
+        type="video/mp4"
+      />
+    </video>
+  </div>
+</div>
 
       <div class="preview" id="preview-diabetes">
         <div class="preview-box">Diabetes Day Camp Preview</div>
@@ -546,11 +507,11 @@ canvas {
 <!-- ===== LIBRARIES ===== -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.158/build/three.min.js"></script>
 
-<!-- ===== APP SCRIPTS ===== -->
-<script src="js/hero-text.js"></script>
-<script src="js/scroll-work.js"></script>
+<!-- ===== APP SCRIPTS (keep your existing app scripts) ===== -->
+<script src="js/hero-text2.js"></script>
+<script src="js/scroll-work2.js"></script>
 <script src="js/work-preview.js"></script>
-<script src="js/hero-bg-control.js"></script>
+<script src="js/hero-bg-control2.js"></script>
 
 </body>
 </html>
