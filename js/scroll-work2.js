@@ -1,20 +1,16 @@
 /* ==========================================================
-   scroll-work2.js — IMMEDIATE SMOOTH SNAP (NO COAST)
-   Clean glide, no pause, no spring
-   + FORCE RESET TO HERO ON REFRESH
+   scroll-work2.js — IMMEDIATE FINGER TRACKING + SMOOTH SNAP
+   - Finger tracks content 1:1 while touching
+   - Momentum (mVel), damping and snap behavior unchanged
+   - Force reset to hero on reload
    ========================================================== */
 
-/* ==========================================================
-   🔒 DISABLE BROWSER SCROLL RESTORATION
-   ========================================================== */
+/* Disable browser scroll restoration so reload always starts at top */
 if ('scrollRestoration' in history) {
   history.scrollRestoration = 'manual';
 }
 
-/* ==========================================================
-   CORE STATE
-   ========================================================== */
-
+/* CORE STATE */
 let target = 0;
 let current = 0;
 let velocity = 0;
@@ -26,28 +22,20 @@ const work = document.getElementById('work');
 const MOBILE_BREAKPOINT = 767;
 const isMobile = () => window.innerWidth <= MOBILE_BREAKPOINT;
 
-/* ==========================================================
-   HERO PAUSE / RESUME
-   ========================================================== */
-
+/* HERO PAUSE / RESUME */
 let heroPaused = false;
-
 function pauseHero() {
   if (heroPaused) return;
   heroPaused = true;
   document.dispatchEvent(new CustomEvent('hero:pause'));
 }
-
 function resumeHero() {
   if (!heroPaused) return;
   heroPaused = false;
   document.dispatchEvent(new CustomEvent('hero:resume'));
 }
 
-/* ==========================================================
-   DESKTOP INPUT (UNCHANGED)
-   ========================================================== */
-
+/* DESKTOP INPUT (unchanged) */
 window.addEventListener(
   'wheel',
   e => {
@@ -58,27 +46,24 @@ window.addEventListener(
   { passive: true }
 );
 
-/* ==========================================================
-   MOBILE STATE
-   ========================================================== */
-
-let mPos = 0;
+/* MOBILE STATE */
+let mPos = window.scrollY; // track current scroll pos
 let mVel = 0;
 let mTouching = false;
 
-/* snap animation */
+/* snap animation state */
 let snapActive = false;
 let snapStart = 0;
 let snapFrom = 0;
 let snapTo = 0;
 
-/* tuning (your current values preserved) */
-const INPUT_FORCE = 0.35;
+/* tuning */
+const INPUT_FORCE = 0.35;   // momentum scaling (keeps your existing feel)
 const DAMPING = 0.85;
 const STOP_VELOCITY = 0.06;
 const SNAP_THRESHOLD = 0.5;
-const SNAP_DURATION = 750;
-const MAX_VELOCITY = 40;
+const SNAP_DURATION = 750;  // ms
+const MAX_VELOCITY = 40;    // px per frame cap
 
 /* easing */
 const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
@@ -93,10 +78,7 @@ function getWorkRatio() {
   );
 }
 
-/* ==========================================================
-   MOBILE INPUT
-   ========================================================== */
-
+/* MOBILE INPUT - now with immediate finger-following */
 let lastY = null;
 
 window.addEventListener(
@@ -118,10 +100,23 @@ window.addEventListener(
     if (!isMobile() || !mTouching) return;
 
     const y = e.touches[0].clientY;
-    mVel += (lastY - y) * INPUT_FORCE;
+    const dy = lastY - y; // positive when moving finger up
 
-    /* clamp velocity */
+    // 1) IMMEDIATE 1:1 FOLLOW — update mPos so content sits under user's finger
+    mPos += dy;
+
+    // clamp mPos to document bounds immediately to avoid overscroll artifacts
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    mPos = Math.max(0, Math.min(maxScroll, mPos));
+
+    // 2) KEEP momentum system intact — update mVel (this preserves snap + glide feel)
+    mVel += dy * INPUT_FORCE;
+
+    // clamp velocity to avoid rocket flicks
     mVel = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, mVel));
+
+    // 3) immediate visual feedback (don't wait for next frame)
+    window.scrollTo(0, mPos);
 
     lastY = y;
   },
@@ -134,16 +129,14 @@ window.addEventListener('touchend', () => {
   lastY = null;
 });
 
-/* ==========================================================
-   MOBILE LOOP — IMMEDIATE GLIDE SNAP
-   ========================================================== */
-
+/* MOBILE LOOP — immediate glide + snap */
 function mobileLoop(ts) {
   if (!isMobile()) {
     requestAnimationFrame(mobileLoop);
     return;
   }
 
+  /* when not snapping, apply momentum/damping to mPos */
   if (!snapActive) {
     mVel *= DAMPING;
     mPos += mVel;
@@ -152,6 +145,7 @@ function mobileLoop(ts) {
       document.documentElement.scrollHeight - window.innerHeight;
     mPos = Math.max(0, Math.min(maxScroll, mPos));
 
+    /* decide snap immediately after velocity dies and touch ended */
     if (!mTouching && Math.abs(mVel) < STOP_VELOCITY) {
       const ratio = getWorkRatio();
 
@@ -165,6 +159,7 @@ function mobileLoop(ts) {
     }
   }
 
+  /* glide snap if active */
   if (snapActive) {
     const t = Math.min(1, (ts - snapStart) / SNAP_DURATION);
     const eased = easeOutCubic(t);
@@ -182,10 +177,7 @@ function mobileLoop(ts) {
   requestAnimationFrame(mobileLoop);
 }
 
-/* ==========================================================
-   DESKTOP LOOP (UNCHANGED VISUALS)
-   ========================================================== */
-
+/* DESKTOP LOOP (unchanged visuals) */
 function desktopLoop() {
   if (isMobile()) {
     requestAnimationFrame(desktopLoop);
@@ -218,10 +210,7 @@ function desktopLoop() {
   requestAnimationFrame(desktopLoop);
 }
 
-/* ==========================================================
-   HARD RESET TO HERO ON PAGE LOAD
-   ========================================================== */
-
+/* HARD RESET TO HERO ON PAGE LOAD */
 function resetToTop() {
   window.scrollTo(0, 0);
 
@@ -238,12 +227,8 @@ function resetToTop() {
 
   resumeHero();
 }
-
 window.addEventListener('load', resetToTop);
 
-/* ==========================================================
-   INIT
-   ========================================================== */
-
+/* INIT */
 requestAnimationFrame(mobileLoop);
 desktopLoop();
