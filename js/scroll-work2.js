@@ -61,9 +61,9 @@ let snapFrom = 0;
 let snapTo = 0;
 
 /* tuning */
-const INPUT_FORCE = 1.0;
-const DAMPING = 0.88;
-const STOP_VELOCITY = 0.03;
+const INPUT_FORCE = 0.35;
+const DAMPING = 0.85;
+const STOP_VELOCITY = 0.06;
 const SNAP_THRESHOLD = 0.5;
 const SNAP_DURATION = 750; // 🔑 slow, smooth glide (ms)
 
