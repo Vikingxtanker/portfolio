@@ -1,185 +1,185 @@
 /* ==========================================================
-   scroll-work.js — pause hero bg on scroll + mobile snap
-   Dispatches 'hero:pause' and 'hero:resume' events
+   scroll-work2.js — IMMEDIATE SMOOTH SNAP (NO COAST)
+   Clean glide, no pause, no spring
    ========================================================== */
 
 let target = 0;
 let current = 0;
 let velocity = 0;
 
-/* elements — MATCH CURRENT HTML */
-const hero  = document.querySelector('canvas');
-const work  = document.getElementById('work');
-const title = document.querySelector('.work-heading');
-const lines = document.querySelectorAll('.work-nav li');
+/* elements */
+const hero = document.querySelector('canvas');
+const work = document.getElementById('work');
 
 const MOBILE_BREAKPOINT = 767;
+const isMobile = () => window.innerWidth <= MOBILE_BREAKPOINT;
 
-function isMobile() {
-  return window.innerWidth <= MOBILE_BREAKPOINT;
-}
+/* ==========================================================
+   HERO PAUSE / RESUME
+   ========================================================== */
 
-/* ---------- HERO PAUSE / RESUME EVENTS (debounced) ---------- */
 let heroPaused = false;
-function dispatchHeroPause() {
+
+function pauseHero() {
   if (heroPaused) return;
   heroPaused = true;
   document.dispatchEvent(new CustomEvent('hero:pause'));
 }
-function dispatchHeroResume() {
+
+function resumeHero() {
   if (!heroPaused) return;
   heroPaused = false;
   document.dispatchEvent(new CustomEvent('hero:resume'));
 }
 
 /* ==========================================================
-   DESKTOP INPUT (UNCHANGED) — with hero pause trigger
+   DESKTOP INPUT (UNCHANGED)
    ========================================================== */
 
-/* desktop wheel */
-window.addEventListener('wheel', e => {
-  if (isMobile()) return;
-  // start pause as soon as user scrolls on desktop
-  dispatchHeroPause();
-  velocity += e.deltaY * 0.0009;
-}, { passive: true });
+window.addEventListener(
+  'wheel',
+  e => {
+    if (isMobile()) return;
+    pauseHero();
+    velocity += e.deltaY * 0.0009;
+  },
+  { passive: true }
+);
 
-/* touch on large-screen devices (Surface / tablets) */
+/* ==========================================================
+   MOBILE STATE
+   ========================================================== */
+
+let mPos = window.scrollY;
+let mVel = 0;
+let mTouching = false;
+
+/* snap animation */
+let snapActive = false;
+let snapStart = 0;
+let snapFrom = 0;
+let snapTo = 0;
+
+/* tuning */
+const INPUT_FORCE = 1.0;
+const DAMPING = 0.88;
+const STOP_VELOCITY = 0.03;
+const SNAP_THRESHOLD = 0.5;
+const SNAP_DURATION = 750; // 🔑 slow, smooth glide (ms)
+
+/* easing */
+const easeOutCubic = t => 1 - Math.pow(1 - t, 3);
+
+/* helpers */
+function getWorkRatio() {
+  const r = work.getBoundingClientRect();
+  const vh = window.innerHeight;
+  return Math.max(
+    0,
+    Math.min(1, (Math.min(vh, r.bottom) - Math.max(0, r.top)) / vh)
+  );
+}
+
+/* ==========================================================
+   MOBILE INPUT
+   ========================================================== */
+
 let lastY = null;
 
-window.addEventListener('touchstart', e => {
-  if (isMobile()) return;
-  lastY = e.touches[0].clientY;
-  dispatchHeroPause();
-}, { passive: true });
+window.addEventListener(
+  'touchstart',
+  e => {
+    if (!isMobile()) return;
+    mTouching = true;
+    snapActive = false;
+    pauseHero();
+    mVel = 0;
+    lastY = e.touches[0].clientY;
+  },
+  { passive: true }
+);
 
-window.addEventListener('touchmove', e => {
-  if (isMobile()) return;
-  if (!lastY) return;
-
-  const y = e.touches[0].clientY;
-  const delta = lastY - y;
-  lastY = y;
-
-  velocity += delta * 0.0009;
-}, { passive: true });
+window.addEventListener(
+  'touchmove',
+  e => {
+    if (!isMobile() || !mTouching) return;
+    const y = e.touches[0].clientY;
+    mVel += (lastY - y) * INPUT_FORCE;
+    lastY = y;
+  },
+  { passive: true }
+);
 
 window.addEventListener('touchend', () => {
+  if (!isMobile()) return;
+  mTouching = false;
   lastY = null;
 });
 
 /* ==========================================================
-   MOBILE SMOOTH SCROLL + AUTO SNAP (SLOWED)
-   Dispatches hero pause/resume based on scroll position
+   MOBILE LOOP — IMMEDIATE GLIDE SNAP
    ========================================================== */
 
-let mobileTarget = 0;
-let mobileCurrent = 0;
-let mobileVelocity = 0;
-let mobileLastY = null;
-let isTouching = false;
-
-const MANUAL_LERP = 0.14;   // normal scroll responsiveness
-const SNAP_LERP   = 0.06;   // slower auto snap speed
-const AUTO_SNAP_VELOCITY_THRESHOLD = 0.08;
-const RESUME_PIXEL_THRESHOLD = 8; // pixels from top to consider hero fully visible
-
-function initMobileSmoothScroll() {
-  if (!isMobile()) return;
-
-  mobileCurrent = window.scrollY;
-  mobileTarget  = mobileCurrent;
-
-  window.addEventListener('touchstart', e => {
-    isTouching = true;
-    mobileLastY = e.touches[0].clientY;
-    // user started touching -> pause hero
-    dispatchHeroPause();
-  }, { passive: true });
-
-  window.addEventListener('touchmove', e => {
-    if (!isTouching || mobileLastY === null) return;
-
-    const y = e.touches[0].clientY;
-    const delta = mobileLastY - y;
-    mobileLastY = y;
-
-    mobileVelocity += delta * 1.1;
-  }, { passive: true });
-
-  window.addEventListener('touchend', () => {
-    isTouching = false;
-    mobileLastY = null;
-  });
-}
-
-function getWorkVisibilityRatio() {
-  if (!work) return 0;
-  const rect = work.getBoundingClientRect();
-  const vh = window.innerHeight;
-  const visible = Math.min(vh, rect.bottom) - Math.max(0, rect.top);
-  return Math.max(0, Math.min(1, visible / vh));
-}
-
-function mobileSmoothLoop() {
+function mobileLoop(ts) {
   if (!isMobile()) {
-    requestAnimationFrame(mobileSmoothLoop);
+    requestAnimationFrame(mobileLoop);
     return;
   }
 
-  mobileTarget += mobileVelocity;
-  mobileVelocity *= 0.88;
+  /* manual scrolling */
+  if (!snapActive) {
+    mVel *= DAMPING;
+    mPos += mVel;
 
-  const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-  mobileTarget = Math.max(0, Math.min(maxScroll, mobileTarget));
+    const maxScroll =
+      document.documentElement.scrollHeight - window.innerHeight;
+    mPos = Math.max(0, Math.min(maxScroll, mPos));
 
-  /* ================= AUTO SNAP ================= */
-  let lerpSpeed = MANUAL_LERP;
-  const velocityStopped = Math.abs(mobileVelocity) < AUTO_SNAP_VELOCITY_THRESHOLD;
+    /* decide snap immediately after stop */
+    if (!mTouching && Math.abs(mVel) < STOP_VELOCITY) {
+      const ratio = getWorkRatio();
 
-  if (!isTouching && velocityStopped) {
-    const ratio = getWorkVisibilityRatio();
+      snapActive = true;
+      snapStart = ts;
+      snapFrom = mPos;
+      snapTo = ratio >= SNAP_THRESHOLD ? work.offsetTop : 0;
+      mVel = 0;
 
-    if (ratio >= 0.5) {
-      mobileTarget = work.offsetTop;
-      lerpSpeed = SNAP_LERP; // slow forward snap
-      // ensure hero remains paused while snapped to work
-      dispatchHeroPause();
-    } else {
-      mobileTarget = 0;
-      lerpSpeed = SNAP_LERP; // slow backward snap
-      // allow resume when hero is (nearly) fully visible — handled below
+      if (snapTo !== 0) pauseHero();
     }
   }
 
-  mobileCurrent += (mobileTarget - mobileCurrent) * lerpSpeed;
-  window.scrollTo(0, mobileCurrent);
+  /* glide snap */
+  if (snapActive) {
+    const t = Math.min(1, (ts - snapStart) / SNAP_DURATION);
+    const eased = easeOutCubic(t);
+    mPos = snapFrom + (snapTo - snapFrom) * eased;
 
-  /* Resume hero when user scrolled back to near top */
-  if (!isTouching && Math.abs(mobileCurrent) <= RESUME_PIXEL_THRESHOLD) {
-    dispatchHeroResume();
-  } else {
-    // if we're not at top, keep paused
-    dispatchHeroPause();
+    if (t >= 1) {
+      snapActive = false;
+      mPos = snapTo;
+
+      if (snapTo === 0) resumeHero();
+    }
   }
 
-  requestAnimationFrame(mobileSmoothLoop);
+  window.scrollTo(0, mPos);
+  requestAnimationFrame(mobileLoop);
 }
 
 /* ==========================================================
-   MAIN LOOP (DESKTOP ONLY) — also controls hero resume when completely back
+   DESKTOP LOOP (UNCHANGED VISUALS)
    ========================================================== */
 
-function loop() {
+function desktopLoop() {
   if (isMobile()) {
-    requestAnimationFrame(loop);
+    requestAnimationFrame(desktopLoop);
     return;
   }
 
   target += velocity;
   velocity *= 0.82;
 
-  /* snap settle for desktop */
   if (Math.abs(velocity) < 0.001) {
     target += (target > 0.5 ? 1 - target : -target) * 0.08;
   }
@@ -187,48 +187,25 @@ function loop() {
   target = Math.max(0, Math.min(1, target));
   current += (target - current) * 0.08;
 
-  /* hero transforms (desktop only) */
   if (hero) {
     hero.style.transform = `translateY(${-current * 22}vh)`;
     hero.style.opacity = 1 - current * 1.1;
   }
 
-  /* work */
   if (work) {
     work.style.transform = `translateY(${(1 - current) * 100}%)`;
     work.style.opacity = Math.min(1, current * 1.2);
   }
 
-  /* title */
-  if (title) {
-    const p = Math.min(1, (current - 0.15) * 6);
-    title.style.opacity = p;
-    title.style.transform = `translateY(${(1 - p) * 12}px)`;
-  }
+  if (current <= 0.02) resumeHero();
+  else pauseHero();
 
-  /* list */
-  lines.forEach((li, i) => {
-    const delay = 0.22 + i * 0.06;
-    const p = Math.min(1, Math.max(0, (current - delay) * 6));
-    li.style.opacity = p;
-    li.style.transform = `translateY(${(1 - p) * 14}px)`;
-  });
-
-  /* hero pause/resume logic for desktop based on current value */
-  // When current is almost 0 → hero fully visible → resume
-  if (current <= 0.02) {
-    dispatchHeroResume();
-  } else {
-    dispatchHeroPause();
-  }
-
-  requestAnimationFrame(loop);
+  requestAnimationFrame(desktopLoop);
 }
 
 /* ==========================================================
    INIT
    ========================================================== */
 
-initMobileSmoothScroll();
-mobileSmoothLoop();
-loop();
+requestAnimationFrame(mobileLoop);
+desktopLoop();

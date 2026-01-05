@@ -200,3 +200,18 @@ the chestpiece should be placed on the particular section which the user is view
 
 how should i execute all this?
 tell me if anything is wrong in this idea
+
+
+1️⃣ Convert final frame → static image
+
+After animation finishes:
+
+Copy canvas → <img>
+
+Remove WebGL entirely
+
+Zero GPU memory usage
+
+3️⃣ Pause Three.js early if user scrolls mid-animation
+
+(Useful for impatient users)
